@@ -1,0 +1,43 @@
+<resources>
+    <!-- Days of the week, short -->
+    <string name="date_monday_short">Mon</string>
+    <string name="date_tuesday_short">Tue</string>
+    <string name="date_wednesday_short">Wed</string>
+    <string name="date_thursday_short">Thu</string>
+    <string name="date_friday_short">Fri</string>
+    <string name="date_saturday_short">Sat</string>
+    <string name="date_sunday_short">Sun</string>
+
+    <!-- Habits overview -->
+    <string name="habits_header_first_half" translatable="false">Habi</string>
+    <string name="habits_header_second_half" translatable="false">Track</string>
+
+    <!-- Habit details -->
+    <string name="habit_details_action_desc_calendar">Open calendar</string>
+    <string name="habit_details_action_desc_edit">Edit habit</string>
+    <string name="habit_details_action_desc_archive">Archive habit</string>
+    <string name="habit_details_action_desc_share">Share habit</string>
+    <string name="habit_details_desc_streak">Streak</string>
+    <string name="habit_details_progress_not_started">Not started</string>
+    <string name="habit_details_progress_in_progress">In progress</string>
+    <string name="habit_details_progress_completed">Completed</string>
+
+    <!-- Habit creation -->
+    <string name="habit_creation_header">New habit</string>
+    <string name="habit_creation_name">Name</string>
+    <string name="habit_creation_description">Description</string>
+    <string name="habit_creation_categories">Categories</string>
+    <string name="habit_creation_daily_limit">Completions per day</string>
+    <string name="habit_creation_daily_limit_day">Day</string>
+    <string name="habit_creation_daily_limit_decrease">Decrease daily limit by 1</string>
+    <string name="habit_creation_daily_limit_increase">Increase daily limit by 1</string>
+    <string name="habit_creation_icon">Icon</string>
+    <string name="habit_creation_color">Color</string>
+    <string name="habit_creation_action_more_icons">More icons</string>
+    <string name="habit_creation_action_save">Save</string>
+
+    <!-- UI actions -->
+    <string name="ui_desc_settings">Open settings</string>
+    <string name="ui_desc_stats">View statistics</string>
+    <string name="ui_desc_add_habit">Add new habit</string>
+</resources>
