@@ -7,7 +7,6 @@ import com.kizitonwose.calendar.core.minusMonths
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -195,12 +194,12 @@ class HabitListViewModel(
             it.copy(updatingData = true)
         }
         viewModelScope.launch {
-            val habits: List<Habit> = habitRepository.getHabits().last()
+            val habits: List<Habit> = _state.value.allHabits
             _state.update {
                 it.copy(
                     updatingData = false,
                     filteredCategory = filteredCategory,
-                    habits = if (filteredCategory == null) habits else habits.filter { habit ->
+                    filteredHabits = if (filteredCategory == null) habits else habits.filter { habit ->
                         habit.categories.contains(filteredCategory)
                     }
                 )
@@ -239,7 +238,8 @@ class HabitListViewModel(
                 }
 
                 _state.update { it.copy(
-                    habits = filteredHabits,
+                    allHabits = habits,
+                    filteredHabits = filteredHabits,
                     habitProgressions = habitProgressions
                 ) }
             }
@@ -266,6 +266,7 @@ data class HabitListState(
     val filteredCategory: HabitCategory? = null,
     val focusedHabit: Habit? = null,
     val categories: List<HabitCategory> = emptyList(),
-    val habits: List<Habit> = emptyList(),
+    val allHabits: List<Habit> = emptyList(),
+    val filteredHabits: List<Habit> = allHabits,
     val habitProgressions: Map<Long, Map<LocalDate, HabitEntry>> = emptyMap()
 )

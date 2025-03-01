@@ -20,8 +20,9 @@ fun FilterCategory(
 ) {
     FilterChip(
         selected = selected,
-        enabled = allowActions,
-        onClick = onClick,
+        onClick = {
+            if (allowActions) onClick()
+        },
         colors = FilterChipDefaults.filterChipColors().copy(
             leadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),

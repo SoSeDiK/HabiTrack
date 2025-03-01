@@ -273,7 +273,7 @@ private fun CategoryFilters(
     ) {
         items(
             items = state.categories.filter { category ->
-                state.habits.fastAny { habit ->
+                state.allHabits.fastAny { habit ->
                     habit.categories.contains(category)
                 }
             },
@@ -300,7 +300,7 @@ private fun HabitsList(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         items(
-            items = state.habits,
+            items = state.filteredHabits,
             key = { it.id }
         ) { habit ->
             ShortListHabit( // TODO more views

@@ -61,6 +61,7 @@ import habitrack.composeapp.generated.resources.habit_creation_name
 import habitrack.composeapp.generated.resources.ui_add_24px
 import habitrack.composeapp.generated.resources.ui_remove_24px
 import me.sosedik.habitrack.data.domain.HabitIcon
+import me.sosedik.habitrack.presentation.component.FilterCategory
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationState
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationViewModel
@@ -183,6 +184,24 @@ fun HabitCreationScreen(
             )
 
             CategoryLabel(name = stringResource(Res.string.habit_creation_categories))
+            LazyVerticalGrid(
+                modifier = Modifier
+                    .height(((state.allCategories.size / 4) * 70).dp),
+                columns = GridCells.Fixed(4)
+            ) {
+                items(
+                    items = state.allCategories
+                ) { category ->
+                    FilterCategory(
+                        habitCategory = category,
+                        selected = state.pickedCategories.contains(category),
+                        allowActions = true,
+                        onClick = {
+                            onAction.invoke(HabitCreationAction.ToggleCategory(category))
+                        }
+                    )
+                }
+            }
 
             CategoryLabel(name = stringResource(Res.string.habit_creation_daily_limit))
             Row(

@@ -12,6 +12,7 @@ data class HabitEntity(
     val name: String,
     val description: String?,
     val dailyLimit: Int,
+    val categories: List<Long>,
     val icon: String,
     val color: Color
 )

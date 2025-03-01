@@ -4,25 +4,42 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.sosedik.habitrack.data.database.HabitEntity
 import me.sosedik.habitrack.data.database.HabitsDao
 import me.sosedik.habitrack.data.domain.HabitCategory
+import me.sosedik.habitrack.data.domain.HabitCategoryRepository
 import me.sosedik.habitrack.data.domain.HabitIcon
 import kotlin.math.min
 
 class HabitCreationViewModel(
+    val habitCategoryRepository: HabitCategoryRepository,
     val habitsDao: HabitsDao
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HabitCreationState())
-    val state = _state.asStateFlow()
+    val state = _state
+        .onStart {
+            observeHabitCategories()
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000L),
+            _state.value
+        )
 
     val nameState: TextFieldState = TextFieldState()
     val descriptionState: TextFieldState = TextFieldState()
+
+    private var observeHabitCategoriesJob: Job? = null
 
     fun onAction(action: HabitCreationAction) {
         when (action) {
@@ -52,7 +69,7 @@ class HabitCreationViewModel(
                     name = nameState.text.toString(),
                     description = descriptionState.text.toString().ifBlank { null },
                     dailyLimit = current.dailyLimit,
-//                    categories = current.categories, // TODO saving categories
+                    categories = current.pickedCategories.map { it.id },
                     icon = current.icon.id,
                     color = current.color
                 )
@@ -66,8 +83,30 @@ class HabitCreationViewModel(
                     }
                 }
             }
+            is HabitCreationAction.ToggleCategory -> {
+                val categories = _state.value.pickedCategories.toMutableList()
+                if (!categories.remove(action.category))
+                    categories.add(action.category)
+                _state.update {
+                    it.copy(
+                        pickedCategories = categories.toList()
+                    )
+                }
+            }
             else -> Unit
         }
+    }
+
+    private fun observeHabitCategories() {
+        observeHabitCategoriesJob?.cancel()
+        observeHabitCategoriesJob = habitCategoryRepository
+            .getHabitCategories()
+            .onEach { habitCategories ->
+                _state.update { it.copy(
+                    allCategories = habitCategories
+                ) }
+            }
+            .launchIn(viewModelScope)
     }
 
 }
@@ -78,6 +117,7 @@ sealed interface HabitCreationAction {
     data object DecreaseDailyLimit : HabitCreationAction
     data class UpdateIcon(val icon: HabitIcon) : HabitCreationAction
     data class UpdateColor(val color: Color) : HabitCreationAction
+    data class ToggleCategory(val category: HabitCategory) : HabitCreationAction
     data object SaveHabit : HabitCreationAction
     data object Discard : HabitCreationAction
 
@@ -86,7 +126,8 @@ sealed interface HabitCreationAction {
 data class HabitCreationState(
     val savingData: Boolean = false,
     val dailyLimit: Int = 1,
-    val categories: List<HabitCategory> = emptyList(),
+    val allCategories: List<HabitCategory> = emptyList(),
+    val pickedCategories: List<HabitCategory> = emptyList(),
     val icon: HabitIcon = HabitIcon.defaultIcon(),
     val color: Color = Color.Red
 )

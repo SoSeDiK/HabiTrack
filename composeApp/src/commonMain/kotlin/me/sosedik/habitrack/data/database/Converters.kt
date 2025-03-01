@@ -4,14 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.room.TypeConverter
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
-
-fun LocalDate.asDMYString(): String {
-    val day = this.dayOfMonth.toString().padStart(2, '0')
-    val month = this.monthNumber.toString().padStart(2, '0')
-    val year = this.year.toString()
-    return "$day.$month.$year"
-}
+import kotlinx.serialization.json.Json
 
 class Converters {
 
@@ -33,6 +26,26 @@ class Converters {
     @TypeConverter
     fun toDate(millis: Long): Instant {
         return Instant.fromEpochMilliseconds(millis)
+    }
+
+    @TypeConverter
+    fun fromStringList(value: List<String>?): String? {
+        return if (value == null) null else Json.encodeToString(value)
+    }
+
+    @TypeConverter
+    fun toStringList(value: String?): List<String>? {
+        return if (value.isNullOrEmpty()) emptyList() else Json.decodeFromString(value)
+    }
+
+    @TypeConverter
+    fun fromLongList(value: List<Long>?): String? {
+        return if (value == null) null else Json.encodeToString(value)
+    }
+
+    @TypeConverter
+    fun toLongList(value: String?): List<Long>? {
+        return if (value.isNullOrEmpty()) emptyList() else Json.decodeFromString(value)
     }
 
 }

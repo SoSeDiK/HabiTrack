@@ -15,7 +15,7 @@ data class HabitCategoryEntity(
     companion object {
 
         fun getDefaultCategories(): List<HabitCategoryEntity> {
-            return listOf( // TODO should be localized
+            return listOf( // TODO should be localized // TODO icons
                 HabitCategoryEntity(name = "Art", icon = "art"),
                 HabitCategoryEntity(name = "Finances", icon = "finance"),
                 HabitCategoryEntity(name = "Fitness", icon = "fitness"),

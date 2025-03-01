@@ -11,6 +11,9 @@ interface HabitCategoriesDao {
     @Upsert
     suspend fun upsert(habit: HabitCategoryEntity)
 
+    @Query("SELECT * FROM habit_categories WHERE id = :id")
+    suspend fun getById(id: Long): HabitCategoryEntity?
+
     @Query("SELECT * FROM habit_categories")
     fun getHabitCategories(): Flow<List<HabitCategoryEntity>>
 

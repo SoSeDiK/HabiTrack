@@ -49,7 +49,7 @@ fun HomePreview() {
             HabitListScreen(
                 state = HabitListState(
                     categories = categories,
-                    habits = habits
+                    filteredHabits = habits
                 ),
                 onAction = {}
             )
@@ -63,7 +63,9 @@ fun HabitCreationPreview() {
     HabiTrackTheme {
         Surface {
             HabitCreationScreen(
-                state = HabitCreationState(),
+                state = HabitCreationState(
+                    allCategories = categories
+                ),
                 nameState = rememberTextFieldState(),
                 descriptionState = rememberTextFieldState(),
                 onAction = {}
