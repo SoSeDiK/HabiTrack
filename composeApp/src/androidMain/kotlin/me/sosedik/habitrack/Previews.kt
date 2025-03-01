@@ -8,12 +8,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.data.domain.HabitIcon
+import me.sosedik.habitrack.presentation.component.HabitCalendarProgressions
 import me.sosedik.habitrack.presentation.screen.FocusedHabit
 import me.sosedik.habitrack.presentation.screen.HabitCreationScreen
 import me.sosedik.habitrack.presentation.screen.HabitListScreen
@@ -80,9 +80,28 @@ fun FocusedHabitPreview() {
             FocusedHabit(
                 habit = habits[0],
                 completions = mapOf(
-                    localDate().minus(0, DateTimeUnit.WEEK).minus(1, DateTimeUnit.DAY) to HabitEntry(1, 1, Clock.System.now(), 1),
-                    localDate().minus(1, DateTimeUnit.WEEK).minus(3, DateTimeUnit.DAY) to HabitEntry(2, 1, Clock.System.now(), 1),
-                    localDate().minus(1, DateTimeUnit.WEEK).minus(2, DateTimeUnit.DAY) to HabitEntry(3, 1, Clock.System.now(), 1)
+                    localDate().minus(0, DateTimeUnit.WEEK).minus(1, DateTimeUnit.DAY) to HabitEntry(1, 1, Clock.System.now(), 1, 1),
+                    localDate().minus(1, DateTimeUnit.WEEK).minus(3, DateTimeUnit.DAY) to HabitEntry(2, 1, Clock.System.now(), 1, 1),
+                    localDate().minus(1, DateTimeUnit.WEEK).minus(2, DateTimeUnit.DAY) to HabitEntry(3, 1, Clock.System.now(), 1, 1)
+                ),
+                allowActions = true,
+                onAction = {}
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HabitCalendarProgressionsPreview() {
+    HabiTrackTheme {
+        Surface {
+            HabitCalendarProgressions(
+                habit = habits[0],
+                completions = mapOf(
+                    localDate().minus(0, DateTimeUnit.WEEK).minus(1, DateTimeUnit.DAY) to HabitEntry(1, 1, Clock.System.now(), 1, 1),
+                    localDate().minus(1, DateTimeUnit.WEEK).minus(3, DateTimeUnit.DAY) to HabitEntry(2, 1, Clock.System.now(), 1, 1),
+                    localDate().minus(1, DateTimeUnit.WEEK).minus(2, DateTimeUnit.DAY) to HabitEntry(3, 1, Clock.System.now(), 1, 1)
                 ),
                 allowActions = true,
                 onAction = {}

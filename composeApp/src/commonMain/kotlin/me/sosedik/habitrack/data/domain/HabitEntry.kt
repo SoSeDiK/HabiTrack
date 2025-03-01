@@ -6,5 +6,6 @@ data class HabitEntry(
     val id: Long,
     val habitId: Long,
     val date: Instant,
-    val count: Int
+    val count: Int,
+    val limit: Int
 )

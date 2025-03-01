@@ -18,8 +18,9 @@ class DefaultHabitEntryRepository(
     private val habitEntriesDao: HabitEntriesDao
 ): HabitEntryRepository {
 
-    override suspend fun addEntry(entry: HabitEntry): Long {
-        return habitEntriesDao.upsert(entry.toEntity())
+    override suspend fun addEntry(entry: HabitEntry): HabitEntry {
+        val newId = habitEntriesDao.upsert(entry.toEntity())
+        return if (newId == -1L) entry else entry.copy(id = newId)
     }
 
     override suspend fun deleteEntry(entry: HabitEntry) {

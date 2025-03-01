@@ -8,7 +8,8 @@ fun HabitEntryEntity.toDomain(): HabitEntry {
         id = this.id,
         habitId = this.habitId,
         date = this.date,
-        count = count
+        count = this.count,
+        limit = this.limit
     )
 }
 
@@ -17,6 +18,7 @@ fun HabitEntry.toEntity(): HabitEntryEntity {
         id = this.id,
         habitId = this.habitId,
         date = this.date,
-        count = count
+        count = this.count,
+        limit = this.limit
     )
 }

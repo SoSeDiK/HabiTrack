@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,12 +42,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,6 +81,7 @@ import kotlinx.datetime.plus
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.presentation.component.FilterCategory
+import me.sosedik.habitrack.presentation.component.HabitCalendarProgressions
 import me.sosedik.habitrack.presentation.component.ShortListHabit
 import me.sosedik.habitrack.presentation.viewmodel.HabitListAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitListState
@@ -87,7 +91,6 @@ import me.sosedik.habitrack.util.localDate
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import androidx.compose.runtime.setValue
 
 @Composable
 fun HabitListScreenRoot(
@@ -114,6 +117,7 @@ fun HabitListScreen(
     onAction: (HabitListAction) -> Unit
 ) {
     val blurValue by animateFloatAsState(targetValue = if (state.focusedHabit != null) 20F else 0F)
+    var showCalendar by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier
@@ -137,16 +141,48 @@ fun HabitListScreen(
     }
 
     state.focusedHabit?.let { focusedHabit ->
+        val completions = state.habitProgressions[focusedHabit.id] ?: emptyMap()
+
         Surface(
             color = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.surface)
         ) {
             FocusedHabit(
                 habit = focusedHabit,
-                completions = state.habitProgressions[focusedHabit.id] ?: emptyMap(),
+                completions = completions,
                 allowActions = !state.updatingData,
-                onAction = onAction
+                onAction = { action ->
+                    when (action) {
+                        HabitListAction.OnCalendarActionClick -> {
+                            showCalendar = true
+                        }
+                        else -> Unit
+                    }
+                    onAction(action)
+                }
             )
+        }
+
+        if (showCalendar) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        onClick = {
+                            showCalendar = false
+                        }
+                    ),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Surface {
+                    HabitCalendarProgressions(
+                        habit = focusedHabit,
+                        completions = completions,
+                        allowActions = !state.updatingData,
+                        onAction = onAction
+                    )
+                }
+            }
         }
     }
 }
@@ -369,11 +405,16 @@ fun FocusedHabit(
             ) {
                 Box(
                     modifier = Modifier
-                        .clickable(
-                            onClick = {
-                                if (allowActions) onAction.invoke(HabitListAction.OnFocusedHabitProgressClick(habit))
-                            }
-                        )
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = {
+                                    if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, true))
+                                },
+                                onLongPress = {
+                                    if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, false))
+                                }
+                            )
+                        }
                         .weight(1F)
                         .background(habit.color, RoundedCornerShape(8.dp))
                         .padding(5.dp)
@@ -450,8 +491,7 @@ fun FocusedHabit(
                     icon = painterResource(Res.drawable.ui_calendar_month_24px),
                     contentDescription = stringResource(Res.string.habit_details_action_desc_calendar),
                     onClick = {
-                        if (allowActions) {}
-                        // TODO Open calendar
+                        if (allowActions) onAction.invoke(HabitListAction.OnCalendarActionClick)
                     }
                 )
                 FocusedHabitAction(
@@ -515,7 +555,7 @@ private fun CalendarGrid(
                 repeat(7) { day ->
                     val date: LocalDate = today.minus(weeksInYear - week - 1, DateTimeUnit.WEEK).plus(day - currentDayOfTheWeek + 1, DateTimeUnit.DAY)
                     val progress: HabitEntry? = completions[date]
-                    val color: Color = if (progress != null && progress.count > 0) activeColor else inactiveColor
+                    val color: Color = if (progress != null && progress.count > 0) activeColor else inactiveColor // TODO Color should depend on limit
                     val currentDay = currentWeek && day == currentDayOfTheWeek - 1
                     Box(
                         modifier = Modifier

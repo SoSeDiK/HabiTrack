@@ -23,28 +23,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import habitrack.composeapp.generated.resources.Res
-import habitrack.composeapp.generated.resources.date_friday_short
-import habitrack.composeapp.generated.resources.date_monday_short
-import habitrack.composeapp.generated.resources.date_saturday_short
-import habitrack.composeapp.generated.resources.date_sunday_short
-import habitrack.composeapp.generated.resources.date_thursday_short
-import habitrack.composeapp.generated.resources.date_tuesday_short
-import habitrack.composeapp.generated.resources.date_wednesday_short
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
-import kotlinx.datetime.toLocalDateTime
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.presentation.viewmodel.HabitListAction
 import me.sosedik.habitrack.util.getPriorDayProgress
 import me.sosedik.habitrack.util.localDate
+import me.sosedik.habitrack.util.locale
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ShortListHabit(
@@ -115,16 +103,7 @@ fun getLastFiveDays(): List<String> {
     for (i in 0..4) {
         val date = today.minus(i, DateTimeUnit.DAY)
         val dayOfWeek = date.dayOfWeek
-        val dayName = when (dayOfWeek) {
-            DayOfWeek.MONDAY -> stringResource(Res.string.date_monday_short)
-            DayOfWeek.TUESDAY -> stringResource(Res.string.date_tuesday_short)
-            DayOfWeek.WEDNESDAY -> stringResource(Res.string.date_wednesday_short)
-            DayOfWeek.THURSDAY -> stringResource(Res.string.date_thursday_short)
-            DayOfWeek.FRIDAY -> stringResource(Res.string.date_friday_short)
-            DayOfWeek.SATURDAY -> stringResource(Res.string.date_saturday_short)
-            DayOfWeek.SUNDAY -> stringResource(Res.string.date_sunday_short)
-            else -> throw IllegalArgumentException("Invalid day of the week: $dayOfWeek")
-        }
+        val dayName = dayOfWeek.locale()
         days.add(dayName)
     }
 

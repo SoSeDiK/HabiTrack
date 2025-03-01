@@ -2,7 +2,6 @@ package me.sosedik.habitrack.presentation.viewmodel
 
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow

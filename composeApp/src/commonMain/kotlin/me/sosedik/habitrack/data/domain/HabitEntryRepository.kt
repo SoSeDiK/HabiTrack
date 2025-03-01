@@ -5,7 +5,7 @@ import kotlinx.datetime.LocalDate
 
 interface HabitEntryRepository {
 
-    suspend fun addEntry(entry: HabitEntry): Long
+    suspend fun addEntry(entry: HabitEntry): HabitEntry
 
     suspend fun deleteEntry(entry: HabitEntry)
 

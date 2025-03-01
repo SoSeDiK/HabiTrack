@@ -2,6 +2,8 @@ package me.sosedik.habitrack.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kizitonwose.calendar.core.YearMonth
+import com.kizitonwose.calendar.core.minusMonths
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +24,7 @@ import me.sosedik.habitrack.data.domain.HabitEntryRepository
 import me.sosedik.habitrack.data.domain.HabitRepository
 import me.sosedik.habitrack.data.mapper.toDomain
 import me.sosedik.habitrack.util.getCurrentDayOfWeek
+import me.sosedik.habitrack.util.getMonthRange
 import me.sosedik.habitrack.util.getPriorDaysRangeUTC
 import me.sosedik.habitrack.util.getStartOfDayInUTC
 import me.sosedik.habitrack.util.localDate
@@ -85,62 +88,104 @@ class HabitListViewModel(
                     }
                 }
             }
-            is HabitListAction.OnFocusedHabitProgressClick -> {
-                val habit: Habit = _state.value.focusedHabit ?: return
-                _state.update {
-                    it.copy(updatingData = true)
-                }
-
-                val allCompletions = _state.value.habitProgressions.toMutableMap()
-                val completions: MutableMap<LocalDate, HabitEntry> = allCompletions[habit.id]?.toMutableMap() ?: hashMapOf()
-
+            is HabitListAction.OnHabitProgressClick -> {
+                val date = action.date
                 val today = localDate()
-                var entry: HabitEntry? = completions[today]
-
-                var count = (entry?.count ?: 0) + 1
-                if (count > habit.dailyLimit) count = 0
-                if (count > 0) {
-                    entry = if (entry == null) {
-                        HabitEntryEntity(
-                            habitId = habit.id,
-                            date = getStartOfDayInUTC(),
-                            count = count
-                        ).toDomain()
-                    } else {
-                        entry.copy(
-                            count = count
-                        )
-                    }
+                if (date.year > today.year) return
+                if (date.year == today.year) {
+                    if (date.monthNumber > today.monthNumber) return
+                    if (date.monthNumber == today.monthNumber && date.dayOfMonth > today.dayOfMonth) return
                 }
 
-                viewModelScope.launch {
-                    if (entry != null) {
-                        if (count > 0) {
-                            entry = entry!!.copy(
-                                id = habitEntryRepository.addEntry(entry!!)
-                            )
-                            completions.put(today, entry)
-                        } else {
-                            habitEntryRepository.deleteEntry(entry)
-                            completions.remove(today)
-                        }
-                        allCompletions[habit.id] = completions.toMap()
-                    }
-
-                    _state.update {
-                        it.copy(
-                            updatingData = false,
-                            habitProgressions = allCompletions.toMap()
-                        )
-                    }
-                }
+                updateHabitProgress(action.habit, date, action.increase)
             }
             HabitListAction.OnFocusCancel -> {
                 _state.update { it.copy(
                     focusedHabit = null
                 ) }
             }
+            is HabitListAction.OnCalendarMonthLoad -> {
+                val habit = _state.value.focusedHabit ?: return
+                
+                _state.update {
+                    it.copy(
+                        updatingData = true
+                    )
+                }
+
+                val yearMonth = action.yearMonth.minusMonths(3)
+                val range = getMonthRange(yearMonth)
+                val habitProgressions: MutableMap<Long, Map<LocalDate, HabitEntry>> = _state.value.habitProgressions.toMutableMap()
+                viewModelScope.launch {
+                    val currentCompletions = habitProgressions[habit.id]?.toMutableMap() ?: hashMapOf()
+                    val completions: Map<LocalDate, HabitEntry> = habitEntryRepository.fetchByRange(habit, range.first, range.second)
+                    currentCompletions.putAll(completions)
+                    habitProgressions[habit.id] = currentCompletions.toMap()
+                    _state.update {
+                        it.copy(
+                            updatingData = false,
+                            habitProgressions = habitProgressions.toMap()
+                        )
+                    }
+                }
+            }
             else -> Unit
+        }
+    }
+
+    private fun updateHabitProgress(
+        habit: Habit,
+        date: LocalDate,
+        increase: Boolean
+    ) {
+        _state.update {
+            it.copy(updatingData = true)
+        }
+
+        val allCompletions = _state.value.habitProgressions.toMutableMap()
+        val completions: MutableMap<LocalDate, HabitEntry> = allCompletions[habit.id]?.toMutableMap() ?: hashMapOf()
+
+        var entry: HabitEntry? = completions[date]
+
+        var count = entry?.count ?: 0
+        if (increase)
+            count++
+        else
+            count--
+        if (count > habit.dailyLimit || count < 0) count = 0
+        if (count > 0) {
+            entry = if (entry == null) {
+                HabitEntryEntity(
+                    habitId = habit.id,
+                    date = getStartOfDayInUTC(date),
+                    count = count,
+                    limit = habit.dailyLimit
+                ).toDomain()
+            } else {
+                entry.copy(
+                    count = count
+                )
+            }
+        }
+
+        viewModelScope.launch {
+            if (entry != null) {
+                if (count > 0) {
+                    entry = habitEntryRepository.addEntry(entry!!)
+                    completions.put(date, entry)
+                } else {
+                    habitEntryRepository.deleteEntry(entry)
+                    completions.remove(date)
+                }
+                allCompletions[habit.id] = completions.toMap()
+            }
+
+            _state.update {
+                it.copy(
+                    updatingData = false,
+                    habitProgressions = allCompletions.toMap()
+                )
+            }
         }
     }
 
@@ -209,8 +254,10 @@ sealed interface HabitListAction {
     data class OnHabitCategoryClick(val category: HabitCategory) : HabitListAction
     data class OnHabitClick(val habit: Habit) : HabitListAction
     data class OnHabitDelete(val habit: Habit) : HabitListAction
-    data class OnFocusedHabitProgressClick(val habit: Habit) : HabitListAction
+    data class OnHabitProgressClick(val habit: Habit, val date: LocalDate, val increase: Boolean) : HabitListAction
     data object OnFocusCancel : HabitListAction
+    data object OnCalendarActionClick : HabitListAction
+    data class OnCalendarMonthLoad(val yearMonth: YearMonth) : HabitListAction
 
 }
 

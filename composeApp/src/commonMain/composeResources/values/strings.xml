@@ -7,6 +7,18 @@
     <string name="date_friday_short">Fri</string>
     <string name="date_saturday_short">Sat</string>
     <string name="date_sunday_short">Sun</string>
+    <string name="date_january">January</string>
+    <string name="date_february">February</string>
+    <string name="date_march">March</string>
+    <string name="date_april">April</string>
+    <string name="date_may">May</string>
+    <string name="date_june">June</string>
+    <string name="date_july">July</string>
+    <string name="date_august">August</string>
+    <string name="date_september">September</string>
+    <string name="date_october">October</string>
+    <string name="date_november">November</string>
+    <string name="date_december">December</string>
 
     <!-- Habits overview -->
     <string name="habits_header_first_half" translatable="false">Habi</string>
@@ -35,6 +47,9 @@
     <string name="habit_creation_color">Color</string>
     <string name="habit_creation_action_more_icons">More icons</string>
     <string name="habit_creation_action_save">Save</string>
+
+    <!-- Habit calendar -->
+    <string name="habit_calendar_footer">Tap/hold dates to add/remove completions</string>
 
     <!-- UI actions -->
     <string name="ui_desc_settings">Open settings</string>

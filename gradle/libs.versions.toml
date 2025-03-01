@@ -1,11 +1,11 @@
 [versions]
-agp = "8.8.1"
+agp = "8.8.2"
 android-compileSdk = "35"
 android-minSdk = "21"
 android-targetSdk = "35"
-androidx-activityCompose = "1.10.0"
+androidx-activityCompose = "1.10.1"
 androidx-appcompat = "1.7.0"
-androidx-constraintlayout = "2.2.0"
+androidx-constraintlayout = "2.2.1"
 androidx-core-ktx = "1.15.0"
 androidx-espresso-core = "3.6.1"
 androidx-lifecycle = "2.8.4"
@@ -22,8 +22,10 @@ navigation-compose = "2.8.0-alpha13"
 koin = "4.0.0"
 kotlinx-datetime = "0.6.2"
 
-room = "2.7.0-beta01"
-sqlite = "2.5.0-beta01"
+room = "2.7.0-rc01"
+sqlite = "2.5.0-rc01"
+
+calendar = "2.6.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -52,6 +54,8 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+
+calendar = { module = "com.kizitonwose.calendar:compose-multiplatform", version.ref = "calendar" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
