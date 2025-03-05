@@ -33,7 +33,7 @@ private val habits = (1..10).map {
     Habit(
         id = it.toLong(),
         name = "Habit $it",
-        description = null,
+        description = "This is habit $it",
         dailyLimit = 1,
         categories = emptyList(),
         icon = HabitIcon.getById("star"),
@@ -102,8 +102,13 @@ fun HabitCalendarProgressionsPreview() {
                 habit = habits[0],
                 completions = mapOf(
                     localDate().minus(0, DateTimeUnit.WEEK).minus(1, DateTimeUnit.DAY) to HabitEntry(1, 1, Clock.System.now(), 1, 1),
-                    localDate().minus(1, DateTimeUnit.WEEK).minus(3, DateTimeUnit.DAY) to HabitEntry(2, 1, Clock.System.now(), 1, 1),
-                    localDate().minus(1, DateTimeUnit.WEEK).minus(2, DateTimeUnit.DAY) to HabitEntry(3, 1, Clock.System.now(), 1, 1)
+                    localDate().minus(0, DateTimeUnit.WEEK).minus(2, DateTimeUnit.DAY) to HabitEntry(2, 1, Clock.System.now(), 2, 2),
+                    localDate().minus(0, DateTimeUnit.WEEK).minus(3, DateTimeUnit.DAY) to HabitEntry(3, 1, Clock.System.now(), 3, 3),
+                    localDate().minus(0, DateTimeUnit.WEEK).minus(4, DateTimeUnit.DAY) to HabitEntry(4, 1, Clock.System.now(), 4, 4),
+                    localDate().minus(0, DateTimeUnit.WEEK).minus(5, DateTimeUnit.DAY) to HabitEntry(5, 1, Clock.System.now(), 5, 5),
+                    localDate().minus(0, DateTimeUnit.WEEK).minus(6, DateTimeUnit.DAY) to HabitEntry(6, 1, Clock.System.now(), 6, 6),
+                    localDate().minus(1, DateTimeUnit.WEEK).minus(2, DateTimeUnit.DAY) to HabitEntry(3, 1, Clock.System.now(), 1, 1),
+                    localDate() to HabitEntry(4, 1, Clock.System.now(), 18, 20),
                 ),
                 allowActions = true,
                 onAction = {}

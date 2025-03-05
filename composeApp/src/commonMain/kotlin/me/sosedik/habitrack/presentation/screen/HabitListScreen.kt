@@ -3,7 +3,6 @@ package me.sosedik.habitrack.presentation.screen
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,9 +29,11 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.window.Popup
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import habitrack.composeapp.generated.resources.Res
 import habitrack.composeapp.generated.resources.habit_details_action_desc_archive
@@ -111,6 +113,7 @@ fun HabitListScreenRoot(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitListScreen(
     state: HabitListState,
@@ -144,44 +147,46 @@ fun HabitListScreen(
         val completions = state.habitProgressions[focusedHabit.id] ?: emptyMap()
 
         Surface(
+            modifier = Modifier
+                .fillMaxSize(),
             color = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.surface)
         ) {
-            FocusedHabit(
-                habit = focusedHabit,
-                completions = completions,
-                allowActions = !state.updatingData,
-                onAction = { action ->
-                    when (action) {
-                        HabitListAction.OnCalendarActionClick -> {
-                            showCalendar = true
+            Popup(
+                onDismissRequest = {
+                    onAction.invoke(HabitListAction.OnFocusCancel)
+                },
+                alignment = Alignment.Center
+            ) {
+                FocusedHabit(
+                    habit = focusedHabit,
+                    completions = completions,
+                    allowActions = !state.updatingData,
+                    onAction = { action ->
+                        when (action) {
+                            HabitListAction.OnCalendarActionClick -> {
+                                showCalendar = true
+                            }
+                            else -> Unit
                         }
-                        else -> Unit
+                        onAction(action)
                     }
-                    onAction(action)
-                }
-            )
+                )
+            }
         }
 
         if (showCalendar) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        onClick = {
-                            showCalendar = false
-                        }
-                    ),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                Surface {
-                    HabitCalendarProgressions(
-                        habit = focusedHabit,
-                        completions = completions,
-                        allowActions = !state.updatingData,
-                        onAction = onAction
-                    )
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showCalendar = false
                 }
+            ) {
+                HabitCalendarProgressions(
+                    habit = focusedHabit,
+                    completions = completions,
+                    allowActions = !state.updatingData,
+                    onAction = onAction
+                )
             }
         }
     }
@@ -323,7 +328,13 @@ fun FocusedHabit(
     val desaturatedColor = remember { habit.color.copy(alpha = 0.3F) }
 
     var lastCalculatedDate by remember { mutableStateOf(localDate()) }
-    var streak by remember { mutableIntStateOf(calculateStreak(lastCalculatedDate, completions)) }
+    var streak by remember { mutableIntStateOf(
+        calculateStreak(
+            habit = habit,
+            startDate = lastCalculatedDate,
+            completions = completions
+        )
+    ) }
 
     val dayCompletions: Int = completions[lastCalculatedDate]?.count ?: 0
 
@@ -332,201 +343,206 @@ fun FocusedHabit(
     val currentDate = localDate()
     LaunchedEffect(currentDate) {
         if (currentDate != lastCalculatedDate) {
-            streak = calculateStreak(currentDate, completions)
+            streak = calculateStreak(
+                    habit = habit,
+                    startDate = currentDate,
+                    completions = completions
+                )
             lastCalculatedDate = currentDate
         }
     }
     LaunchedEffect(completions) {
-        streak = calculateStreak(currentDate, completions)
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable(onClick = {
-                onAction.invoke(HabitListAction.OnFocusCancel)
-            }),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .clickable(onClick = { /* Override parent clickable, do nothing */ })
-                .padding(horizontal = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .sizeIn(minHeight = 24.dp, maxHeight = 32.dp)
-                        .background(desaturatedColor, shape = RoundedCornerShape(6.dp)),
-                ) {
-                    Icon(
-                        modifier = Modifier
-                            .padding(3.dp),
-                        painter = painterResource(habit.icon.resource),
-                        contentDescription = null
-                    )
-                }
-                Text(
-                    text = habit.name,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.weight(1F))
-                IconButton(
-                    onClick = {
-                        onAction.invoke(HabitListAction.OnFocusCancel)
-                    }
-                ) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = null
-                    )
-                }
-            }
-
-            habit.description?.let { description ->
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            CalendarGrid(
-                activeColor = habit.color,
-                inactiveColor = desaturatedColor,
+        streak = calculateStreak(
+                habit = habit,
+                startDate = currentDate,
                 completions = completions
             )
+    }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .sizeIn(minHeight = 24.dp, maxHeight = 32.dp)
+                    .background(desaturatedColor, shape = RoundedCornerShape(6.dp)),
             ) {
-                Box(
+                Icon(
                     modifier = Modifier
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = {
-                                    if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, true))
-                                },
-                                onLongPress = {
-                                    if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, false))
-                                }
-                            )
-                        }
-                        .weight(1F)
-                        .background(habit.color, RoundedCornerShape(8.dp))
-                        .padding(5.dp)
-                ) {
-                    val total = habit.dailyLimit
+                        .padding(3.dp),
+                    painter = painterResource(habit.icon.resource),
+                    contentDescription = null
+                )
+            }
+            Text(
+                text = habit.name,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.weight(1F))
+            IconButton(
+                onClick = {
+                    onAction.invoke(HabitListAction.OnFocusCancel)
+                }
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = null
+                )
+            }
+        }
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter =
-                                if (dayCompletions == 0)
-                                    painterResource(Res.drawable.ui_circle_24px)
-                                else if (dayCompletions < total)
-                                    painterResource(Res.drawable.ui_pending_24px)
-                                else
-                                    rememberVectorPainter(Icons.Outlined.CheckCircle),
-                            contentDescription = stringResource(Res.string.habit_details_desc_streak)
-                        )
-                        Text(
-                            text = (stringResource(
-                                if (dayCompletions == 0)
-                                    Res.string.habit_details_progress_not_started
-                                else if (dayCompletions < total)
-                                    Res.string.habit_details_progress_in_progress
-                                else
-                                    Res.string.habit_details_progress_completed
-                            )) + "  $dayCompletions / $total",
-                            style = MaterialTheme.typography.bodyLarge
+        habit.description?.let { description ->
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+
+        CalendarGrid(
+            activeColor = habit.color,
+            inactiveColor = desaturatedColor,
+            completions = completions
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, true))
+                            },
+                            onLongPress = {
+                                if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, false))
+                            }
                         )
                     }
-                }
-                Box(
-                    modifier = Modifier
-                        .background(desaturatedColor, RoundedCornerShape(8.dp))
-                        .padding(5.dp)
+                    .weight(1F)
+                    .background(habit.color, RoundedCornerShape(8.dp))
+                    .padding(5.dp)
+            ) {
+                val total = habit.dailyLimit
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Icon(
+                        painter =
+                            if (dayCompletions == 0)
+                                painterResource(Res.drawable.ui_circle_24px)
+                            else if (dayCompletions < total)
+                                painterResource(Res.drawable.ui_pending_24px)
+                            else
+                                rememberVectorPainter(Icons.Outlined.CheckCircle),
+                        contentDescription = stringResource(Res.string.habit_details_desc_streak)
+                    )
                     Text(
-                        text = "Daily", // TODO Streak counter
+                        text = (stringResource(
+                            if (dayCompletions == 0)
+                                Res.string.habit_details_progress_not_started
+                            else if (dayCompletions < total)
+                                Res.string.habit_details_progress_in_progress
+                            else
+                                Res.string.habit_details_progress_completed
+                        )) + "  $dayCompletions / $total",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .background(desaturatedColor, RoundedCornerShape(8.dp))
-                        .padding(5.dp)
+            }
+            Box(
+                modifier = Modifier
+                    .background(desaturatedColor, RoundedCornerShape(8.dp))
+                    .padding(5.dp)
+            ) {
+                Text(
+                    text = "Daily", // TODO Streak counter
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .background(desaturatedColor, RoundedCornerShape(8.dp))
+                    .padding(5.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            modifier = Modifier
-                                .size(20.dp),
-                            painter = painterResource(Res.drawable.ui_rocket_24px),
-                            contentDescription = stringResource(Res.string.habit_details_desc_streak)
-                        )
-                        Text(
-                            text = streak.toString(),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
+                    Icon(
+                        modifier = Modifier
+                            .size(20.dp),
+                        painter = painterResource(Res.drawable.ui_rocket_24px),
+                        contentDescription = stringResource(Res.string.habit_details_desc_streak)
+                    )
+                    Text(
+                        text = streak.toString(),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             }
+        }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FocusedHabitAction(
-                    icon = painterResource(Res.drawable.ui_calendar_month_24px),
-                    contentDescription = stringResource(Res.string.habit_details_action_desc_calendar),
-                    onClick = {
-                        if (allowActions) onAction.invoke(HabitListAction.OnCalendarActionClick)
-                    }
-                )
-                FocusedHabitAction(
-                    icon = rememberVectorPainter(Icons.Default.Edit),
-                    contentDescription = stringResource(Res.string.habit_details_action_desc_edit),
-                    onClick = {
-                        if (allowActions) {}
-                        // TODO Edit habit
-                    }
-                )
-                FocusedHabitAction(
-                    icon = rememberVectorPainter(Icons.Default.Delete),
-                    contentDescription = stringResource(Res.string.habit_details_action_desc_archive),
-                    onClick = {
-                        if (allowActions) onAction.invoke(HabitListAction.OnHabitDelete(habit))
-                    }
-                )
-                FocusedHabitAction(
-                    icon = rememberVectorPainter(Icons.Default.Share),
-                    contentDescription = stringResource(Res.string.habit_details_action_desc_share),
-                    onClick = {
-                        if (allowActions) {}
-                        // TODO Share habit
-                    }
-                )
-            }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FocusedHabitAction(
+                icon = painterResource(Res.drawable.ui_calendar_month_24px),
+                contentDescription = stringResource(Res.string.habit_details_action_desc_calendar),
+                onClick = {
+                    if (allowActions) onAction.invoke(HabitListAction.OnCalendarActionClick)
+                }
+            )
+            FocusedHabitAction(
+                icon = rememberVectorPainter(Icons.Default.Edit),
+                contentDescription = stringResource(Res.string.habit_details_action_desc_edit),
+                onClick = {
+                    if (allowActions) {}
+                    // TODO Edit habit
+                }
+            )
+            FocusedHabitAction(
+                icon = rememberVectorPainter(Icons.Default.Delete),
+                contentDescription = stringResource(Res.string.habit_details_action_desc_archive),
+                onClick = {
+                    if (allowActions) onAction.invoke(HabitListAction.OnHabitDelete(habit))
+                }
+            )
+            FocusedHabitAction(
+                icon = rememberVectorPainter(Icons.Default.Share),
+                contentDescription = stringResource(Res.string.habit_details_action_desc_share),
+                onClick = {
+                    if (allowActions) {}
+                    // TODO Share habit
+                }
+            )
         }
     }
 }
 
-private fun calculateStreak(startDate: LocalDate, completions: Map<LocalDate, HabitEntry>): Int {
+private fun calculateStreak(
+    habit: Habit,
+    startDate: LocalDate,
+    completions: Map<LocalDate, HabitEntry>
+): Int {
     var streak = 0
     var streakDay = startDate
     if (completions[streakDay] == null) streakDay = streakDay.minus(1, DateTimeUnit.DAY)
-    while ((completions[streakDay]?.count ?: 0) > 0) {
+    while ((completions[streakDay]?.count ?: 0) >= habit.dailyLimit) {
         streak++
         streakDay = streakDay.minus(1, DateTimeUnit.DAY)
     }

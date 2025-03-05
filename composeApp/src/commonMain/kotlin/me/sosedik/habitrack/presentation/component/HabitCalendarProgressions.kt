@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -107,7 +109,7 @@ fun HabitCalendarProgressions(
 }
 
 @Composable
-fun MonthHeader(
+private fun MonthHeader(
     month: CalendarMonth,
     state: CalendarState
 ) {
@@ -152,7 +154,7 @@ fun MonthHeader(
 }
 
 @Composable
-fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
+private fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
     Row(modifier = Modifier.fillMaxWidth()) {
         for (dayOfWeek in daysOfWeek) {
             Text(
@@ -167,7 +169,7 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 }
 
 @Composable
-fun Day(
+private fun Day(
     day: CalendarDay,
     today: LocalDate,
     habit: Habit,
@@ -191,18 +193,21 @@ fun Day(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
+        Box(
             modifier = Modifier
                 .let {
                     if (day.date == today)
                         it
                             .border(1.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(8.dp))
-                            .padding(3.dp)
                     else
                         it
-                },
-            text = day.date.dayOfMonth.toString(),
-            color =
+                }
+                .padding(vertical = 3.dp, horizontal = 6.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = day.date.dayOfMonth.toString(),
+                color =
                 if (day.position == DayPosition.MonthDate)
                     if (day.date.dayOfMonth <= today.dayOfMonth)
                         MaterialTheme.colorScheme.onSurface
@@ -210,36 +215,46 @@ fun Day(
                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75F)
                 else
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6F)
-        )
+            )
+        }
         Row(
             modifier = Modifier
-                .height(20.dp)
+                .padding(vertical = 4.dp)
+                .height(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // TODO Progress display
             completion?.count?.takeIf { it > 0 }?.let { count ->
                 Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (count > 5) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .background(habit.color, CircleShape)
-                        )
+                        ProgressCircle(habit = habit)
+                        Spacer(modifier = Modifier.width(3.dp))
                         Text(
-                            text = count.toString()
+                            text = count.toString(),
+                            style = MaterialTheme.typography.labelSmall
                         )
                     } else {
                         repeat(count) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .background(habit.color, CircleShape)
-                            )
+                            ProgressCircle(habit = habit)
                         }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun ProgressCircle(
+    habit: Habit
+) {
+    Box(
+        modifier = Modifier
+            .size(6.dp)
+            .background(habit.color, CircleShape)
+    )
 }
