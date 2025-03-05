@@ -1,8 +1,10 @@
 package me.sosedik.habitrack.presentation.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,11 +31,14 @@ import kotlinx.datetime.minus
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.presentation.viewmodel.HabitListAction
+import me.sosedik.habitrack.util.calculateColor
+import me.sosedik.habitrack.util.getDesaturatedColor
 import me.sosedik.habitrack.util.getPriorDayProgress
 import me.sosedik.habitrack.util.localDate
 import me.sosedik.habitrack.util.locale
 import org.jetbrains.compose.resources.painterResource
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShortListHabit(
     habit: Habit,
@@ -41,7 +46,7 @@ fun ShortListHabit(
     allowActions: Boolean,
     onAction: (HabitListAction) -> Unit
 ) {
-    val desaturatedColor = remember { habit.color.copy(alpha = 0.3F) }
+    val desaturatedColor = remember { getDesaturatedColor(habit.color) }
 
     Row(
         modifier = Modifier
@@ -86,17 +91,30 @@ fun ShortListHabit(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             lastFiveDays.forEachIndexed { index, day ->
-                // TODO click to cycle day counter (?)
-                val progress: HabitEntry? = completions[getPriorDayProgress(4 - index)]
-                val color = if (progress != null && progress.count > 0) habit.color else desaturatedColor
-                ShortListDay(day, color)
+                // TODO click to increase day counter
+                val date: LocalDate = getPriorDayProgress(4 - index)
+                val progress: HabitEntry? = completions[date]
+                val color: Color = calculateColor(habit.color, desaturatedColor, progress)
+                ShortListDay(
+                    modifier = Modifier
+                        .combinedClickable(
+                            onClick = {
+                                if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, date, true))
+                            },
+                            onLongClick = {
+                                if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, date, false))
+                            }
+                        ),
+                    name = day,
+                    color = color
+                )
             }
         }
     }
 }
 
 @Composable
-fun getLastFiveDays(): List<String> {
+private fun getLastFiveDays(): List<String> {
     val today = localDate()
     val days = mutableListOf<String>()
 
@@ -111,11 +129,13 @@ fun getLastFiveDays(): List<String> {
 }
 
 @Composable
-fun ShortListDay(
+private fun ShortListDay(
+    modifier: Modifier = Modifier,
     name: String,
     color: Color
 ) {
     Column(
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(

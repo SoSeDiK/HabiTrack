@@ -88,11 +88,14 @@ import me.sosedik.habitrack.presentation.component.ShortListHabit
 import me.sosedik.habitrack.presentation.viewmodel.HabitListAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitListState
 import me.sosedik.habitrack.presentation.viewmodel.HabitListViewModel
+import me.sosedik.habitrack.util.calculateColor
 import me.sosedik.habitrack.util.getCurrentDayOfWeek
+import me.sosedik.habitrack.util.getDesaturatedColor
 import me.sosedik.habitrack.util.localDate
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.min
 
 @Composable
 fun HabitListScreenRoot(
@@ -325,12 +328,11 @@ fun FocusedHabit(
     allowActions: Boolean, // TODO separate allow actions from button enabled states (it flickers)
     onAction: (HabitListAction) -> Unit
 ) {
-    val desaturatedColor = remember { habit.color.copy(alpha = 0.3F) }
+    val desaturatedColor = remember { getDesaturatedColor(habit.color) }
 
     var lastCalculatedDate by remember { mutableStateOf(localDate()) }
     var streak by remember { mutableIntStateOf(
         calculateStreak(
-            habit = habit,
             startDate = lastCalculatedDate,
             completions = completions
         )
@@ -344,7 +346,6 @@ fun FocusedHabit(
     LaunchedEffect(currentDate) {
         if (currentDate != lastCalculatedDate) {
             streak = calculateStreak(
-                    habit = habit,
                     startDate = currentDate,
                     completions = completions
                 )
@@ -353,7 +354,6 @@ fun FocusedHabit(
     }
     LaunchedEffect(completions) {
         streak = calculateStreak(
-                habit = habit,
                 startDate = currentDate,
                 completions = completions
             )
@@ -535,14 +535,13 @@ fun FocusedHabit(
 }
 
 private fun calculateStreak(
-    habit: Habit,
     startDate: LocalDate,
     completions: Map<LocalDate, HabitEntry>
 ): Int {
     var streak = 0
     var streakDay = startDate
     if (completions[streakDay] == null) streakDay = streakDay.minus(1, DateTimeUnit.DAY)
-    while ((completions[streakDay]?.count ?: 0) >= habit.dailyLimit) {
+    while (completions[streakDay] != null && completions[streakDay]!!.count >= completions[streakDay]!!.limit) {
         streak++
         streakDay = streakDay.minus(1, DateTimeUnit.DAY)
     }
@@ -571,7 +570,7 @@ private fun CalendarGrid(
                 repeat(7) { day ->
                     val date: LocalDate = today.minus(weeksInYear - week - 1, DateTimeUnit.WEEK).plus(day - currentDayOfTheWeek + 1, DateTimeUnit.DAY)
                     val progress: HabitEntry? = completions[date]
-                    val color: Color = if (progress != null && progress.count > 0) activeColor else inactiveColor // TODO Color should depend on limit
+                    val color: Color = calculateColor(activeColor, inactiveColor, progress)
                     val currentDay = currentWeek && day == currentDayOfTheWeek - 1
                     Box(
                         modifier = Modifier
