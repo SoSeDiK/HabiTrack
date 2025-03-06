@@ -44,9 +44,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,6 +79,7 @@ import habitrack.composeapp.generated.resources.habit_creation_daily_limit_decre
 import habitrack.composeapp.generated.resources.habit_creation_daily_limit_increase
 import habitrack.composeapp.generated.resources.habit_creation_description
 import habitrack.composeapp.generated.resources.habit_creation_header
+import habitrack.composeapp.generated.resources.habit_creation_header_editor
 import habitrack.composeapp.generated.resources.habit_creation_icon
 import habitrack.composeapp.generated.resources.habit_creation_name
 import habitrack.composeapp.generated.resources.ui_add_24px
@@ -153,7 +154,7 @@ fun HabitCreationScreen(
                 },
                 title = {
                     Text(
-                        text = stringResource(Res.string.habit_creation_header),
+                        text = stringResource(if (state.habitId != null) Res.string.habit_creation_header_editor else Res.string.habit_creation_header),
                         style = MaterialTheme.typography.titleLarge
                     )
                 }

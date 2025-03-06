@@ -4,9 +4,10 @@ import android.content.res.Configuration
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -21,13 +22,11 @@ import me.sosedik.habitrack.presentation.screen.FocusedHabit
 import me.sosedik.habitrack.presentation.screen.HabitCreationScreen
 import me.sosedik.habitrack.presentation.screen.HabitListScreen
 import me.sosedik.habitrack.presentation.theme.HabiTrackTheme
+import me.sosedik.habitrack.presentation.viewmodel.HabitCreationAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationState
 import me.sosedik.habitrack.presentation.viewmodel.HabitListState
 import me.sosedik.habitrack.util.PRE_PICKED_COLORS
 import me.sosedik.habitrack.util.localDate
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import me.sosedik.habitrack.presentation.viewmodel.HabitCreationAction
 
 private val categories = (1..10).map {
     HabitCategory(

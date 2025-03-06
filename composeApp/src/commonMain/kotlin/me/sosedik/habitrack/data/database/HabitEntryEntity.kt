@@ -1,7 +1,6 @@
 package me.sosedik.habitrack.data.database
 
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.datetime.Instant
 

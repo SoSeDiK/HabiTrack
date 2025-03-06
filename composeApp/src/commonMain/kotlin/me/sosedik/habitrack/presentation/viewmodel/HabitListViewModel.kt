@@ -1,5 +1,6 @@
 package me.sosedik.habitrack.presentation.viewmodel
 
+import androidx.compose.ui.util.fastFirstOrNull
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kizitonwose.calendar.core.YearMonth
@@ -232,6 +233,7 @@ class HabitListViewModel(
                 }
 
                 _state.update { it.copy(
+                    focusedHabit = _state.value.focusedHabit?.let { habit -> habits.fastFirstOrNull { it.id == habit.id } },
                     allHabits = habits,
                     filteredHabits = filteredHabits,
                     habitProgressions = habitProgressions
@@ -247,6 +249,7 @@ sealed interface HabitListAction {
     data object OnNewHabitAdd : HabitListAction
     data class OnHabitCategoryClick(val category: HabitCategory) : HabitListAction
     data class OnHabitClick(val habit: Habit) : HabitListAction
+    data class OnHabitEdit(val habit: Habit) : HabitListAction
     data class OnHabitDelete(val habit: Habit) : HabitListAction
     data class OnHabitProgressClick(val habit: Habit, val date: LocalDate, val increase: Boolean) : HabitListAction
     data object OnFocusCancel : HabitListAction

@@ -9,11 +9,15 @@ import androidx.navigation.navigation
 import me.sosedik.habitrack.presentation.screen.HabitCreationScreenRoot
 import me.sosedik.habitrack.presentation.screen.HabitListScreenRoot
 import me.sosedik.habitrack.presentation.theme.HabiTrackTheme
+import me.sosedik.habitrack.presentation.viewmodel.AppViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
 
 @Preview
 @Composable
-fun App() {
+fun App(
+    viewModel: AppViewModel = koinViewModel()
+) {
     val navController: NavHostController = rememberNavController()
 
     HabiTrackTheme {
@@ -25,6 +29,11 @@ fun App() {
                 composable<Route.Home.Overview> {
                     HabitListScreenRoot(
                         onNewHabitCreation = {
+                            navController.navigate(Route.Home.HabitCreation)
+                        },
+                        onHabitEdit = { habit ->
+                            viewModel.cachedHabit = habit
+                            println("H: ${viewModel.cachedHabit}")
                             navController.navigate(Route.Home.HabitCreation)
                         }
                     )

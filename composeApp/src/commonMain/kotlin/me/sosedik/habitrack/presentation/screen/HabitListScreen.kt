@@ -99,7 +99,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun HabitListScreenRoot(
     viewModel: HabitListViewModel = koinViewModel(),
-    onNewHabitCreation: () -> Unit
+    onNewHabitCreation: () -> Unit,
+    onHabitEdit: (Habit) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -108,6 +109,7 @@ fun HabitListScreenRoot(
         onAction = { action ->
             when (action) {
                 HabitListAction.OnNewHabitAdd -> onNewHabitCreation()
+                is HabitListAction.OnHabitEdit -> onHabitEdit(action.habit)
                 else -> Unit
             }
             viewModel.onAction(action)
@@ -327,7 +329,7 @@ fun FocusedHabit(
     allowActions: Boolean, // TODO separate allow actions from button enabled states (it flickers)
     onAction: (HabitListAction) -> Unit
 ) {
-    val desaturatedColor = remember { getDesaturatedColor(habit.color) }
+    var desaturatedColor by remember { mutableStateOf(getDesaturatedColor(habit.color)) }
 
     var lastCalculatedDate by remember { mutableStateOf(localDate()) }
     var streak by remember { mutableIntStateOf(
@@ -337,12 +339,16 @@ fun FocusedHabit(
         )
     ) }
 
+    LaunchedEffect(habit) {
+        desaturatedColor = getDesaturatedColor(habit.color)
+    }
+
     val dayCompletions: Int = completions[lastCalculatedDate]?.count ?: 0
 
     // TODO Streak counter
     // Recalculate the streak if the day has changed
     val currentDate = localDate()
-    LaunchedEffect(currentDate) {
+    LaunchedEffect(currentDate, habit) {
         if (currentDate != lastCalculatedDate) {
             streak = calculateStreak(
                     startDate = currentDate,
@@ -351,7 +357,7 @@ fun FocusedHabit(
             lastCalculatedDate = currentDate
         }
     }
-    LaunchedEffect(completions) {
+    LaunchedEffect(completions, habit) {
         streak = calculateStreak(
                 startDate = currentDate,
                 completions = completions
@@ -510,15 +516,14 @@ fun FocusedHabit(
                 icon = rememberVectorPainter(Icons.Default.Edit),
                 contentDescription = stringResource(Res.string.habit_details_action_desc_edit),
                 onClick = {
-                    if (allowActions) {}
-                    // TODO Edit habit
+                    if (allowActions) onAction.invoke(HabitListAction.OnHabitEdit(habit))
                 }
             )
             FocusedHabitAction(
                 icon = rememberVectorPainter(Icons.Default.Delete),
                 contentDescription = stringResource(Res.string.habit_details_action_desc_archive),
                 onClick = {
-                    if (allowActions) onAction.invoke(HabitListAction.OnHabitDelete(habit))
+                    if (allowActions) onAction.invoke(HabitListAction.OnHabitDelete(habit)) // TODO confirmation
                 }
             )
             FocusedHabitAction(

@@ -22,14 +22,27 @@ import me.sosedik.habitrack.util.PRE_PICKED_COLORS
 import kotlin.math.max
 import kotlin.math.min
 
-val DAILY_LIMIT_MAX = 1_000
+const val DAILY_LIMIT_MAX = 1_000
+private val DEFAULT_CUSTOM_COLOR = Color.White
 
 class HabitCreationViewModel(
+    appViewModel: AppViewModel,
     val habitCategoryRepository: HabitCategoryRepository,
     val habitsDao: HabitsDao
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(HabitCreationState())
+    private val _state = MutableStateFlow(
+        appViewModel.cachedHabit?.let { habit ->
+            HabitCreationState(
+                habitId = habit.id,
+                dailyLimit = habit.dailyLimit,
+                pickedCategories = habit.categories,
+                icon = habit.icon,
+                color = habit.color,
+                customColor = if (PRE_PICKED_COLORS.contains(habit.color)) DEFAULT_CUSTOM_COLOR else habit.color
+            )
+        } ?: HabitCreationState()
+    )
     val state = _state
         .onStart {
             observeHabitCategories()
@@ -40,10 +53,15 @@ class HabitCreationViewModel(
             _state.value
         )
 
-    val nameState: TextFieldState = TextFieldState()
-    val descriptionState: TextFieldState = TextFieldState()
+    val nameState: TextFieldState = TextFieldState(initialText = appViewModel.cachedHabit?.name ?: "")
+    val descriptionState: TextFieldState = TextFieldState(initialText = appViewModel.cachedHabit?.description ?: "")
 
     private var observeHabitCategoriesJob: Job? = null
+
+    init {
+        println("I: ${appViewModel.cachedHabit}")
+        appViewModel.cachedHabit = null
+    }
 
     fun onAction(action: HabitCreationAction) {
         when (action) {
@@ -78,8 +96,9 @@ class HabitCreationViewModel(
             HabitCreationAction.SaveHabit -> {
                 val current = state.value
                 val habit = HabitEntity(
-                    name = nameState.text.toString(),
-                    description = descriptionState.text.toString().ifBlank { null },
+                    id = current.habitId ?: 0L,
+                    name = nameState.text.trim().toString(),
+                    description = descriptionState.text.trim().toString().ifEmpty { null },
                     dailyLimit = current.dailyLimit,
                     categories = current.pickedCategories.map { it.id },
                     icon = current.icon.id,
@@ -139,10 +158,11 @@ sealed interface HabitCreationAction {
 
 data class HabitCreationState(
     val savingData: Boolean = false,
+    val habitId: Long? = null,
     val dailyLimit: Int = 1,
     val allCategories: List<HabitCategory> = emptyList(),
     val pickedCategories: List<HabitCategory> = emptyList(),
     val icon: HabitIcon = HabitIcon.defaultIcon(),
     val color: Color = PRE_PICKED_COLORS[0],
-    val customColor: Color = Color.White
+    val customColor: Color = DEFAULT_CUSTOM_COLOR
 )

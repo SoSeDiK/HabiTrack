@@ -34,8 +34,9 @@
     <string name="habit_details_progress_in_progress">In progress</string>
     <string name="habit_details_progress_completed">Completed</string>
 
-    <!-- Habit creation -->
+    <!-- Habit creation/editing -->
     <string name="habit_creation_header">New habit</string>
+    <string name="habit_creation_header_editor">Edit habit</string>
     <string name="habit_creation_name">Name</string>
     <string name="habit_creation_description">Description</string>
     <string name="habit_creation_categories">Categories</string>

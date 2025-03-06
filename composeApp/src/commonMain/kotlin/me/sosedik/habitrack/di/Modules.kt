@@ -16,6 +16,7 @@ import me.sosedik.habitrack.data.domain.HabitRepository
 import me.sosedik.habitrack.data.repository.DefaultHabitCategoryRepository
 import me.sosedik.habitrack.data.repository.DefaultHabitEntryRepository
 import me.sosedik.habitrack.data.repository.DefaultHabitRepository
+import me.sosedik.habitrack.presentation.viewmodel.AppViewModel
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationViewModel
 import me.sosedik.habitrack.presentation.viewmodel.HabitListViewModel
 import org.koin.core.module.Module
@@ -53,6 +54,7 @@ val sharedModule = module {
     singleOf(::DefaultHabitRepository).bind<HabitRepository>()
     singleOf(::DefaultHabitEntryRepository).bind<HabitEntryRepository>()
 
+    single { AppViewModel() }
     viewModelOf(::HabitCreationViewModel)
     viewModelOf(::HabitListViewModel)
 }
