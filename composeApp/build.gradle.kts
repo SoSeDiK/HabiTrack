@@ -76,6 +76,7 @@ kotlin {
             implementation(libs.sqlite.bundled)
 
             implementation(libs.calendar)
+            implementation(libs.colorpicker)
         }
     }
 }

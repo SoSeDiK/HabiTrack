@@ -46,7 +46,13 @@
     <string name="habit_creation_icon">Icon</string>
     <string name="habit_creation_color">Color</string>
     <string name="habit_creation_action_more_icons">More icons</string>
+    <string name="habit_creation_action_color_picker">Open color picker</string>
     <string name="habit_creation_action_save">Save</string>
+
+    <!-- Color picker -->
+    <string name="color_picker_action_copy">Copy to clipboard</string>
+    <string name="color_picker_action_paste">Read from clipboard</string>
+    <string name="color_picker_action_done">Done</string>
 
     <!-- Habit calendar -->
     <string name="habit_calendar_footer">Tap/hold dates to add/remove completions</string>

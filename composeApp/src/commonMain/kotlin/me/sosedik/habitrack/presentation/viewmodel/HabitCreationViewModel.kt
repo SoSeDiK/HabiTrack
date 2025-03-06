@@ -18,7 +18,11 @@ import me.sosedik.habitrack.data.database.HabitsDao
 import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitCategoryRepository
 import me.sosedik.habitrack.data.domain.HabitIcon
+import me.sosedik.habitrack.util.PRE_PICKED_COLORS
+import kotlin.math.max
 import kotlin.math.min
+
+val DAILY_LIMIT_MAX = 1_000
 
 class HabitCreationViewModel(
     val habitCategoryRepository: HabitCategoryRepository,
@@ -45,12 +49,12 @@ class HabitCreationViewModel(
         when (action) {
             HabitCreationAction.IncreaseDailyLimit -> {
                 _state.update {
-                    it.copy(dailyLimit = it.dailyLimit + 1)
+                    it.copy(dailyLimit = min(DAILY_LIMIT_MAX, it.dailyLimit + 1))
                 }
             }
             HabitCreationAction.DecreaseDailyLimit -> {
                 _state.update {
-                    it.copy(dailyLimit = min(0, it.dailyLimit - 1))
+                    it.copy(dailyLimit = max(0, it.dailyLimit - 1))
                 }
             }
             is HabitCreationAction.UpdateIcon -> {
@@ -61,6 +65,14 @@ class HabitCreationViewModel(
             is HabitCreationAction.UpdateColor -> {
                 _state.update {
                     it.copy(color = action.color)
+                }
+            }
+            is HabitCreationAction.UpdateCustomColor -> {
+                _state.update {
+                    it.copy(
+                        color = action.color,
+                        customColor = action.color
+                    )
                 }
             }
             HabitCreationAction.SaveHabit -> {
@@ -117,8 +129,10 @@ sealed interface HabitCreationAction {
     data object DecreaseDailyLimit : HabitCreationAction
     data class UpdateIcon(val icon: HabitIcon) : HabitCreationAction
     data class UpdateColor(val color: Color) : HabitCreationAction
+    data class UpdateCustomColor(val color: Color) : HabitCreationAction
     data class ToggleCategory(val category: HabitCategory) : HabitCreationAction
     data object SaveHabit : HabitCreationAction
+    data object DismissColor : HabitCreationAction
     data object Discard : HabitCreationAction
 
 }
@@ -129,5 +143,6 @@ data class HabitCreationState(
     val allCategories: List<HabitCategory> = emptyList(),
     val pickedCategories: List<HabitCategory> = emptyList(),
     val icon: HabitIcon = HabitIcon.defaultIcon(),
-    val color: Color = Color.Red
+    val color: Color = PRE_PICKED_COLORS[0],
+    val customColor: Color = Color.White
 )

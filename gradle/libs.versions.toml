@@ -25,7 +25,9 @@ kotlinx-datetime = "0.6.2"
 room = "2.7.0-rc01"
 sqlite = "2.5.0-rc01"
 
+# Libs
 calendar = "2.6.2"
+colorpicker = "1.1.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -56,6 +58,7 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 
 calendar = { module = "com.kizitonwose.calendar:compose-multiplatform", version.ref = "calendar" }
+colorpicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

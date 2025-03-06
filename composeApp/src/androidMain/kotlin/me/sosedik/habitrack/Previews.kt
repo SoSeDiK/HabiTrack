@@ -4,6 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.datetime.Clock
@@ -14,13 +16,18 @@ import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.data.domain.HabitIcon
 import me.sosedik.habitrack.presentation.component.HabitCalendarProgressions
+import me.sosedik.habitrack.presentation.screen.ColorPicker
 import me.sosedik.habitrack.presentation.screen.FocusedHabit
 import me.sosedik.habitrack.presentation.screen.HabitCreationScreen
 import me.sosedik.habitrack.presentation.screen.HabitListScreen
 import me.sosedik.habitrack.presentation.theme.HabiTrackTheme
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationState
 import me.sosedik.habitrack.presentation.viewmodel.HabitListState
+import me.sosedik.habitrack.util.PRE_PICKED_COLORS
 import me.sosedik.habitrack.util.localDate
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import me.sosedik.habitrack.presentation.viewmodel.HabitCreationAction
 
 private val categories = (1..10).map {
     HabitCategory(
@@ -37,7 +44,7 @@ private val habits = (1..10).map {
         dailyLimit = 1,
         categories = emptyList(),
         icon = HabitIcon.getById("star"),
-        color = Color.Red
+        color = PRE_PICKED_COLORS[0]
     )
 }
 
@@ -69,6 +76,34 @@ fun HabitCreationPreview() {
                 nameState = rememberTextFieldState(),
                 descriptionState = rememberTextFieldState(),
                 onAction = {}
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ColorPickerPreview() {
+    var state by remember { mutableStateOf(
+        HabitCreationState(
+            allCategories = categories
+        )
+    ) }
+
+    HabiTrackTheme {
+        Surface {
+            ColorPicker(
+                state = state,
+                onAction = { action ->
+                    when (action) {
+                        is HabitCreationAction.UpdateCustomColor -> {
+                            state = state.copy(
+                                customColor = action.color
+                            )
+                        }
+                        else -> Unit
+                    }
+                }
             )
         }
     }
