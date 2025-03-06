@@ -6,8 +6,7 @@ import androidx.room.PrimaryKey
 import kotlinx.datetime.Instant
 
 @Entity(
-    tableName = "entries",
-    indices = [Index(value = ["date"], unique = true)]
+    tableName = "entries"
 )
 data class HabitEntryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,

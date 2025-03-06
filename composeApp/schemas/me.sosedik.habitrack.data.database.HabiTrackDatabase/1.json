@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "f10dcedc5ddb7fbcd09af4603acb0af2",
+    "identityHash": "e7131b54996890fa4d14976e51852360",
     "entities": [
       {
         "tableName": "habit_categories",
@@ -127,23 +127,12 @@
           "columnNames": [
             "id"
           ]
-        },
-        "indices": [
-          {
-            "name": "index_entries_date",
-            "unique": true,
-            "columnNames": [
-              "date"
-            ],
-            "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_entries_date` ON `${TABLE_NAME}` (`date`)"
-          }
-        ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f10dcedc5ddb7fbcd09af4603acb0af2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e7131b54996890fa4d14976e51852360')"
     ]
   }
 }

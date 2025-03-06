@@ -14,14 +14,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
-import me.sosedik.habitrack.data.database.HabitEntryEntity
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitCategoryRepository
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.data.domain.HabitEntryRepository
 import me.sosedik.habitrack.data.domain.HabitRepository
-import me.sosedik.habitrack.data.mapper.toDomain
 import me.sosedik.habitrack.util.getCurrentDayOfWeek
 import me.sosedik.habitrack.util.getMonthRange
 import me.sosedik.habitrack.util.getPriorDaysRangeUTC
@@ -152,30 +150,26 @@ class HabitListViewModel(
         else
             count--
         if (count > habit.dailyLimit || count < 0) count = 0
-        if (count > 0) {
-            entry = if (entry == null) {
-                HabitEntryEntity(
-                    habitId = habit.id,
-                    date = getStartOfDayInUTC(date),
-                    count = count,
-                    limit = habit.dailyLimit
-                ).toDomain()
-            } else {
-                entry.copy(
-                    count = count
-                )
-            }
+
+        entry = if (entry == null) {
+            HabitEntry(
+                id = 0L,
+                habitId = habit.id,
+                date = getStartOfDayInUTC(date),
+                count = count,
+                limit = habit.dailyLimit
+            )
+        } else {
+            entry.copy(
+                count = count
+            )
         }
 
         viewModelScope.launch {
             if (entry != null) {
-                if (count > 0) {
-                    entry = habitEntryRepository.addEntry(entry!!)
+                entry = habitEntryRepository.addEntry(entry!!)
+                if (entry.id != 0L)
                     completions.put(date, entry)
-                } else {
-                    habitEntryRepository.deleteEntry(entry)
-                    completions.remove(date)
-                }
                 allCompletions[habit.id] = completions.toMap()
             }
 
