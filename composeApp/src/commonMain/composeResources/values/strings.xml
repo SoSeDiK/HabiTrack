@@ -62,4 +62,7 @@
     <string name="ui_desc_settings">Open settings</string>
     <string name="ui_desc_stats">View statistics</string>
     <string name="ui_desc_add_habit">Add new habit</string>
+
+    <!-- Errors -->
+    <string name="error_can_not_be_empty">This field cannot be empty</string>
 </resources>

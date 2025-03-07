@@ -33,7 +33,6 @@ fun App(
                         },
                         onHabitEdit = { habit ->
                             viewModel.cachedHabit = habit
-                            println("H: ${viewModel.cachedHabit}")
                             navController.navigate(Route.Home.HabitCreation)
                         }
                     )

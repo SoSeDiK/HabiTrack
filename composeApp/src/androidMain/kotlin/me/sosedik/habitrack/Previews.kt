@@ -72,8 +72,8 @@ fun HabitCreationPreview() {
                 state = HabitCreationState(
                     allCategories = categories
                 ),
-                nameState = rememberTextFieldState(),
-                descriptionState = rememberTextFieldState(),
+                nameState = rememberTextFieldState(initialText = "Sample habit"),
+                descriptionState = rememberTextFieldState(initialText = "This is a sample habit"),
                 onAction = {}
             )
         }

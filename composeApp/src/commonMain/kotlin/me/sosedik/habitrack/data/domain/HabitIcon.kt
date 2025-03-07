@@ -1,7 +1,13 @@
 package me.sosedik.habitrack.data.domain
 
-import habitrack.composeapp.generated.resources.*
 import habitrack.composeapp.generated.resources.Res
+import habitrack.composeapp.generated.resources.icon_emoji_food_beverage_40px
+import habitrack.composeapp.generated.resources.icon_school_40px
+import habitrack.composeapp.generated.resources.icon_self_improvement_40px
+import habitrack.composeapp.generated.resources.icon_shower_40px
+import habitrack.composeapp.generated.resources.icon_sports_esports_40px
+import habitrack.composeapp.generated.resources.icon_star_40px
+import habitrack.composeapp.generated.resources.icon_wash_40px
 import org.jetbrains.compose.resources.DrawableResource
 
 enum class HabitType {

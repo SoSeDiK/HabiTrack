@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -18,7 +19,10 @@ import me.sosedik.habitrack.data.database.HabitsDao
 import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitCategoryRepository
 import me.sosedik.habitrack.data.domain.HabitIcon
+import me.sosedik.habitrack.util.CanNotBeEmptyError
+import me.sosedik.habitrack.util.HabiTrackError
 import me.sosedik.habitrack.util.PRE_PICKED_COLORS
+import me.sosedik.habitrack.util.observeMutableField
 import kotlin.math.max
 import kotlin.math.min
 
@@ -54,12 +58,16 @@ class HabitCreationViewModel(
         )
 
     val nameState: TextFieldState = TextFieldState(initialText = appViewModel.cachedHabit?.name ?: "")
+    private val _nameStateError: MutableStateFlow<HabiTrackError?> =
+        nameState.observeMutableField(viewModelScope, null) {
+            validateName(false)
+        }
+    val nameStateError: StateFlow<HabiTrackError?> = _nameStateError
     val descriptionState: TextFieldState = TextFieldState(initialText = appViewModel.cachedHabit?.description ?: "")
 
     private var observeHabitCategoriesJob: Job? = null
 
     init {
-        println("I: ${appViewModel.cachedHabit}")
         appViewModel.cachedHabit = null
     }
 
@@ -124,6 +132,9 @@ class HabitCreationViewModel(
                     )
                 }
             }
+            HabitCreationAction.ValidateName -> {
+                _nameStateError.value = validateName(true)
+            }
             else -> Unit
         }
     }
@@ -140,6 +151,12 @@ class HabitCreationViewModel(
             .launchIn(viewModelScope)
     }
 
+    private fun validateName(finished: Boolean): HabiTrackError? {
+        if (finished && nameState.text.isEmpty())
+            return CanNotBeEmptyError
+        return null
+    }
+
 }
 
 sealed interface HabitCreationAction {
@@ -150,6 +167,7 @@ sealed interface HabitCreationAction {
     data class UpdateColor(val color: Color) : HabitCreationAction
     data class UpdateCustomColor(val color: Color) : HabitCreationAction
     data class ToggleCategory(val category: HabitCategory) : HabitCreationAction
+    data object ValidateName : HabitCreationAction
     data object SaveHabit : HabitCreationAction
     data object DismissColor : HabitCreationAction
     data object Discard : HabitCreationAction
@@ -165,4 +183,10 @@ data class HabitCreationState(
     val icon: HabitIcon = HabitIcon.defaultIcon(),
     val color: Color = PRE_PICKED_COLORS[0],
     val customColor: Color = DEFAULT_CUSTOM_COLOR
-)
+) {
+
+    fun isEditing(): Boolean {
+        return this.habitId != null
+    }
+    
+}

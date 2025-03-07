@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
@@ -43,15 +42,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -89,12 +94,15 @@ import habitrack.composeapp.generated.resources.ui_palette_24px
 import habitrack.composeapp.generated.resources.ui_remove_24px
 import me.sosedik.habitrack.data.domain.HabitIcon
 import me.sosedik.habitrack.presentation.component.FilterCategory
+import me.sosedik.habitrack.presentation.component.SimpleTextField
 import me.sosedik.habitrack.presentation.viewmodel.DAILY_LIMIT_MAX
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationState
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationViewModel
+import me.sosedik.habitrack.util.HabiTrackError
 import me.sosedik.habitrack.util.PRE_PICKED_COLORS
 import me.sosedik.habitrack.util.hexToColor
+import me.sosedik.habitrack.util.message
 import me.sosedik.habitrack.util.toHex
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -114,6 +122,7 @@ fun HabitCreationScreenRoot(
     HabitCreationScreen(
         state = state,
         nameState = viewModel.nameState,
+        nameStateError = viewModel.nameStateError.collectAsState().value,
         descriptionState = viewModel.descriptionState,
         onAction = { action ->
             when (action) {
@@ -131,11 +140,24 @@ fun HabitCreationScreenRoot(
 fun HabitCreationScreen(
     state: HabitCreationState,
     nameState: TextFieldState,
+    nameStateError: HabiTrackError? = null,
     descriptionState: TextFieldState,
     onAction: (HabitCreationAction) -> Unit
 ) {
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val nameInputFocusRequester = remember { FocusRequester() }
+    val descriptionInputFocusRequester = remember { FocusRequester() }
     var showColorPicker by remember { mutableStateOf(false) }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    if (!state.isEditing()) {
+        LaunchedEffect(Unit) {
+            nameInputFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -154,7 +176,7 @@ fun HabitCreationScreen(
                 },
                 title = {
                     Text(
-                        text = stringResource(if (state.habitId != null) Res.string.habit_creation_header_editor else Res.string.habit_creation_header),
+                        text = stringResource(if (state.isEditing()) Res.string.habit_creation_header_editor else Res.string.habit_creation_header),
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
@@ -168,10 +190,11 @@ fun HabitCreationScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Button(
-                    enabled = nameState.text.isNotBlank(),
                     modifier = Modifier
+                        .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(12.dp))
                         .widthIn(min = 300.dp),
                     shape = RoundedCornerShape(12.dp),
+                    enabled = nameState.text.isNotBlank(),
                     onClick = {
                         onAction.invoke(HabitCreationAction.SaveHabit)
                     }
@@ -192,10 +215,9 @@ fun HabitCreationScreen(
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             CategoryLabel(name = stringResource(Res.string.habit_creation_name))
-            BasicTextField(
+            SimpleTextField(
                 modifier = Modifier
-                    .height(40.dp)
-                    .fillMaxWidth(),
+                    .focusRequester(nameInputFocusRequester),
                 state = nameState,
                 lineLimits = TextFieldLineLimits.SingleLine,
                 keyboardOptions = KeyboardOptions(
@@ -203,14 +225,19 @@ fun HabitCreationScreen(
                     autoCorrectEnabled = true,
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
-                )
+                ),
+                onKeyboardAction = {
+                    onAction.invoke(HabitCreationAction.ValidateName)
+                    descriptionInputFocusRequester.requestFocus()
+                },
+                isError = nameStateError != null,
+                errorMessage = nameStateError?.message()
             )
 
             CategoryLabel(name = stringResource(Res.string.habit_creation_description))
-            BasicTextField(
+            SimpleTextField(
                 modifier = Modifier
-                    .height(40.dp)
-                    .fillMaxWidth(),
+                    .focusRequester(descriptionInputFocusRequester),
                 state = descriptionState,
                 lineLimits = TextFieldLineLimits.SingleLine,
                 keyboardOptions = KeyboardOptions(
@@ -218,7 +245,11 @@ fun HabitCreationScreen(
                     autoCorrectEnabled = true,
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Done
-                )
+                ),
+                onKeyboardAction = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                }
             )
 
             CategoryLabel(name = stringResource(Res.string.habit_creation_categories))
@@ -257,10 +288,10 @@ fun HabitCreationScreen(
                     ) {
                         Text(
                             text =
-                            if (state.dailyLimit > 0)
-                                state.dailyLimit.toString()
-                            else
-                                "∞",
+                                if (state.dailyLimit > 0)
+                                    state.dailyLimit.toString()
+                                else
+                                    "∞",
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
