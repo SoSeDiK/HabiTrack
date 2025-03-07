@@ -1,5 +1,10 @@
 package me.sosedik.habitrack.app
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -37,7 +42,14 @@ fun App(
                         }
                     )
                 }
-                composable<Route.Home.HabitCreation> {
+                composable<Route.Home.HabitCreation>(
+                    enterTransition = {
+                        slideInVertically(initialOffsetY = { it }, animationSpec = tween(900))
+                    },
+                    exitTransition = {
+                        slideOutVertically(targetOffsetY = { it }, animationSpec = tween(900))
+                    }
+                ) {
                     HabitCreationScreenRoot(
                         onDiscard = {
                             navController.popBackStack()
