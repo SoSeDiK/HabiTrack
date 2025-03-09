@@ -25,7 +25,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -60,16 +64,18 @@ import org.jetbrains.compose.resources.stringResource
 fun HabitCalendarProgressions(
     habit: Habit,
     completions: Map<LocalDate, HabitEntry>,
+    firstDayOfWeek: DayOfWeek,
     allowActions: Boolean,
     onAction: (HabitListAction) -> Unit
 ) {
-    val today = localDate()
-    val daysOfWeek = daysOfWeek() // TODO Sunday as first day
+    val today by remember { mutableStateOf(localDate()) } // TODO check this, update on day change?
+    var daysOfWeek by remember { mutableStateOf(daysOfWeek(firstDayOfWeek)) }
 
     val state = rememberCalendarState(
         startMonth = YearMonth(0, 1),
         endMonth = YearMonth.now(),
         firstVisibleMonth = YearMonth.now(),
+        firstDayOfWeek = firstDayOfWeek,
         outDateStyle = OutDateStyle.EndOfGrid
     )
 

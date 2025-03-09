@@ -102,6 +102,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun HabitListScreenRoot(
     viewModel: HabitListViewModel = koinViewModel(),
+    onSettings: () -> Unit,
     onNewHabitCreation: () -> Unit,
     onHabitEdit: (Habit) -> Unit
 ) {
@@ -111,6 +112,7 @@ fun HabitListScreenRoot(
         state = state,
         onAction = { action ->
             when (action) {
+                HabitListAction.OnOpenSettings -> onSettings()
                 HabitListAction.OnNewHabitAdd -> onNewHabitCreation()
                 is HabitListAction.OnHabitEdit -> onHabitEdit(action.habit)
                 else -> Unit
@@ -205,6 +207,7 @@ fun HabitListScreen(
                 HabitCalendarProgressions(
                     habit = focusedHabit,
                     completions = completions,
+                    firstDayOfWeek = state.firstDayOfWeek,
                     allowActions = !state.updatingData,
                     onAction = onAction
                 )
@@ -225,7 +228,7 @@ private fun Header(
             icon = painterResource(Res.drawable.ui_settings_24px),
             contentDescription = stringResource(Res.string.ui_desc_settings),
             onClick = {
-                // TODO Open settings
+                onAction.invoke(HabitListAction.OnOpenSettings)
             }
         )
 
@@ -575,7 +578,7 @@ private fun CalendarGrid(
     inactiveColor: Color,
     completions: Map<LocalDate, HabitEntry>
 ) { // TODO Tracking progress
-    val weeksInYear = 53
+    val weeksInYear = 53 // weeks to render
     val today: LocalDate = localDate()
     val currentDayOfTheWeek = getCurrentDayOfWeek()
 

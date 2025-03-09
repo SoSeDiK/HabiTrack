@@ -1,6 +1,8 @@
 package me.sosedik.habitrack
 
 import android.content.res.Configuration
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -11,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.minus
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitCategory
@@ -19,9 +22,12 @@ import me.sosedik.habitrack.data.domain.HabitIcon
 import me.sosedik.habitrack.presentation.component.HabitCalendarProgressions
 import me.sosedik.habitrack.presentation.screen.ColorPicker
 import me.sosedik.habitrack.presentation.screen.FocusedHabit
+import me.sosedik.habitrack.presentation.screen.GeneralSettingsScreen
 import me.sosedik.habitrack.presentation.screen.HabitCreationScreen
 import me.sosedik.habitrack.presentation.screen.HabitListScreen
+import me.sosedik.habitrack.presentation.screen.SettingsScreen
 import me.sosedik.habitrack.presentation.theme.HabiTrackTheme
+import me.sosedik.habitrack.presentation.viewmodel.GeneralSettingsState
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationState
 import me.sosedik.habitrack.presentation.viewmodel.HabitListState
@@ -127,6 +133,7 @@ fun FocusedHabitPreview() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HabitCalendarProgressionsPreview() {
@@ -144,7 +151,36 @@ fun HabitCalendarProgressionsPreview() {
                     localDate().minus(1, DateTimeUnit.WEEK).minus(2, DateTimeUnit.DAY) to HabitEntry(3, 1, Clock.System.now(), 1, 1),
                     localDate() to HabitEntry(4, 1, Clock.System.now(), 18, 20),
                 ),
+                firstDayOfWeek = DayOfWeek.MONDAY,
                 allowActions = true,
+                onAction = {}
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun SettingsPreview() {
+    HabiTrackTheme {
+        Surface {
+            SettingsScreen(
+                onAction = {}
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun GeneralSettingsPreview() {
+    HabiTrackTheme {
+        Surface {
+            GeneralSettingsScreen(
+                state = GeneralSettingsState(
+                    loadingData = false,
+                    weekOnSunday = false
+                ),
                 onAction = {}
             )
         }

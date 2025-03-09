@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitCategory
@@ -21,6 +22,7 @@ import me.sosedik.habitrack.data.domain.HabitCategoryRepository
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.data.domain.HabitEntryRepository
 import me.sosedik.habitrack.data.domain.HabitRepository
+import me.sosedik.habitrack.data.domain.SettingsRepository
 import me.sosedik.habitrack.util.getCurrentDayOfWeek
 import me.sosedik.habitrack.util.getMonthRange
 import me.sosedik.habitrack.util.getPriorDaysRangeUTC
@@ -28,6 +30,7 @@ import me.sosedik.habitrack.util.getStartOfDayInUTC
 import me.sosedik.habitrack.util.localDate
 
 class HabitListViewModel(
+    settingsRepository: SettingsRepository,
     val habitCategoryRepository: HabitCategoryRepository,
     val habitRepository: HabitRepository,
     val habitEntryRepository: HabitEntryRepository
@@ -47,6 +50,18 @@ class HabitListViewModel(
 
     private var observeHabitCategoriesJob: Job? = null
     private var observeHabitsJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            settingsRepository.getStartWeekOnSunday().collect {
+                refreshPreference { state ->
+                    state.copy(
+                        firstDayOfWeek = if (it) DayOfWeek.SUNDAY else DayOfWeek.MONDAY
+                    )
+                }
+            }
+        }
+    }
 
     fun onAction(action: HabitListAction) {
         when (action) {
@@ -152,19 +167,16 @@ class HabitListViewModel(
             count--
         if (count > habit.dailyLimit || count < 0) count = 0
 
-        entry = if (entry == null) {
-            HabitEntry(
+        entry = entry?.copy(
+            count = count
+        )
+            ?: HabitEntry(
                 id = 0L,
                 habitId = habit.id,
                 date = getStartOfDayInUTC(date),
                 count = count,
                 limit = habit.dailyLimit
             )
-        } else {
-            entry.copy(
-                count = count
-            )
-        }
 
         viewModelScope.launch {
             if (entry != null) {
@@ -242,10 +254,17 @@ class HabitListViewModel(
             .launchIn(viewModelScope)
     }
 
+    private fun refreshPreference(action: (HabitListState) -> HabitListState) {
+        viewModelScope.launch {
+            _state.value = action(_state.value)
+        }
+    }
+
 }
 
 sealed interface HabitListAction {
 
+    data object OnOpenSettings : HabitListAction
     data object OnNewHabitAdd : HabitListAction
     data class OnHabitCategoryClick(val category: HabitCategory) : HabitListAction
     data class OnHabitClick(val habit: Habit) : HabitListAction
@@ -260,6 +279,7 @@ sealed interface HabitListAction {
 
 data class HabitListState(
     val updatingData: Boolean = false,
+    val firstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY,
     val filteredCategory: HabitCategory? = null,
     val focusedHabit: Habit? = null,
     val categories: List<HabitCategory> = emptyList(),

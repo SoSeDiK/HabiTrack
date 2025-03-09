@@ -7,9 +7,16 @@ sealed interface Route {
     @Serializable
     object Home {
         @Serializable
-        object Overview
+        object Overview : Route
         @Serializable
-        object HabitCreation
+        object HabitCreation : Route
+    }
+    @Serializable
+    object Settings {
+        @Serializable
+        object Overview : Route
+        @Serializable
+        object General : Route
     }
 
 }

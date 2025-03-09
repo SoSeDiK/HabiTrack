@@ -13,10 +13,13 @@ import me.sosedik.habitrack.data.database.HabitCategoryEntity
 import me.sosedik.habitrack.data.domain.HabitCategoryRepository
 import me.sosedik.habitrack.data.domain.HabitEntryRepository
 import me.sosedik.habitrack.data.domain.HabitRepository
+import me.sosedik.habitrack.data.domain.SettingsRepository
 import me.sosedik.habitrack.data.repository.DefaultHabitCategoryRepository
 import me.sosedik.habitrack.data.repository.DefaultHabitEntryRepository
 import me.sosedik.habitrack.data.repository.DefaultHabitRepository
+import me.sosedik.habitrack.data.repository.DefaultSettingsRepository
 import me.sosedik.habitrack.presentation.viewmodel.AppViewModel
+import me.sosedik.habitrack.presentation.viewmodel.GeneralSettingsViewModel
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationViewModel
 import me.sosedik.habitrack.presentation.viewmodel.HabitListViewModel
 import org.koin.core.module.Module
@@ -28,6 +31,7 @@ import org.koin.dsl.module
 expect val platformModule: Module
 
 val sharedModule = module {
+    // Database
     single {
         get<DatabaseFactory>().create()
             .setDriver(BundledSQLiteDriver())
@@ -46,6 +50,10 @@ val sharedModule = module {
             })
             .build()
     }
+
+    // Data store
+    single { DefaultSettingsRepository(get()) }.bind<SettingsRepository>()
+
     single { get<HabiTrackDatabase>().habitCategoriesDao }
     single { get<HabiTrackDatabase>().habitsDao }
     single { get<HabiTrackDatabase>().habitEntriesDao }
@@ -54,7 +62,8 @@ val sharedModule = module {
     singleOf(::DefaultHabitRepository).bind<HabitRepository>()
     singleOf(::DefaultHabitEntryRepository).bind<HabitEntryRepository>()
 
-    single { AppViewModel() }
+    singleOf(::AppViewModel)
     viewModelOf(::HabitCreationViewModel)
     viewModelOf(::HabitListViewModel)
+    viewModelOf(::GeneralSettingsViewModel)
 }

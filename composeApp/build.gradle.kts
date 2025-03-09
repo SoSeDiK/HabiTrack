@@ -64,6 +64,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
 
+            api(libs.datastore)
+            api(libs.datastore.preferences)
+
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.navigation.compose)
 

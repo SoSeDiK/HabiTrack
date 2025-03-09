@@ -63,6 +63,12 @@
     <string name="ui_desc_stats">View statistics</string>
     <string name="ui_desc_add_habit">Add new habit</string>
 
+    <!-- Settings -->
+    <string name="settings_overview_header">Settings</string>
+    <string name="settings_overview_category_general">General</string>
+    <string name="settings_overview_category_general_desc">Navigate to general settings</string>
+    <string name="settings_cat_general_week_on_sunday">Week starts on Sunday</string>
+
     <!-- Errors -->
     <string name="error_can_not_be_empty">This field cannot be empty</string>
 </resources>
