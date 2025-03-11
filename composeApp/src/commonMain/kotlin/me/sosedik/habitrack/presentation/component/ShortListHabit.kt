@@ -42,18 +42,20 @@ import me.sosedik.habitrack.util.localDate
 import me.sosedik.habitrack.util.locale
 import org.jetbrains.compose.resources.painterResource
 
+private val PLACEHOLDER_COLOR = Color.Gray
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShortListHabit(
-    habit: Habit,
+    habit: Habit?,
     completions: Map<LocalDate, HabitEntry>,
     allowActions: Boolean,
     onAction: (HabitListAction) -> Unit
 ) {
-    var desaturatedColor by remember { mutableStateOf(getDesaturatedColor(habit.color)) }
+    var desaturatedColor by remember { mutableStateOf(if (habit == null) PLACEHOLDER_COLOR else getDesaturatedColor(habit.color)) }
 
     LaunchedEffect(habit) {
-        desaturatedColor = getDesaturatedColor(habit.color)
+        if (habit != null) desaturatedColor = getDesaturatedColor(habit.color)
     }
 
     Row(
@@ -61,7 +63,7 @@ fun ShortListHabit(
             .clickable(
                 enabled = allowActions,
                 onClick = {
-                    onAction.invoke(HabitListAction.OnHabitClick(habit))
+                    if (habit != null) onAction.invoke(HabitListAction.OnHabitClick(habit))
                 }
             )
             .border(1.dp, MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.2F), shape = RoundedCornerShape(8.dp))
@@ -79,15 +81,17 @@ fun ShortListHabit(
                     .sizeIn(minHeight = 24.dp, maxHeight = 32.dp)
                     .background(desaturatedColor, shape = RoundedCornerShape(6.dp)),
             ) {
-                Icon(
-                    modifier = Modifier
-                        .padding(3.dp),
-                    painter = painterResource(habit.icon.resource),
-                    contentDescription = null
-                )
+                if (habit != null) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(3.dp),
+                        painter = painterResource(habit.icon.resource),
+                        contentDescription = null
+                    )
+                }
             }
             Text(
-                text = habit.name,
+                text = habit?.name ?: "",
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -102,15 +106,15 @@ fun ShortListHabit(
                 // TODO click to increase day counter
                 val date: LocalDate = getPriorDayProgress(4 - index)
                 val progress: HabitEntry? = completions[date]
-                val color: Color = calculateColor(habit.color, desaturatedColor, progress)
+                val color: Color = if (habit == null) PLACEHOLDER_COLOR else calculateColor(habit.color, desaturatedColor, progress)
                 ShortListDay(
                     modifier = Modifier
                         .combinedClickable(
                             onClick = {
-                                if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, date, true))
+                                if (allowActions && habit != null) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, date, true))
                             },
                             onLongClick = {
-                                if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, date, false))
+                                if (allowActions && habit != null) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, date, false))
                             }
                         ),
                     name = day,

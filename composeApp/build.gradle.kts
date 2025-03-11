@@ -64,6 +64,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
 
+            implementation(libs.bundles.api.extras)
+
             api(libs.datastore)
             api(libs.datastore.preferences)
 
@@ -77,6 +79,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
 
             implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.room.paging)
             implementation(libs.sqlite.bundled)
 
             implementation(libs.calendar)

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e7131b54996890fa4d14976e51852360",
+    "identityHash": "0aa512b21ef47a3daac872fd451e543d",
     "entities": [
       {
         "tableName": "habit_categories",
@@ -36,7 +36,7 @@
       },
       {
         "tableName": "habits",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `dailyLimit` INTEGER NOT NULL, `categories` TEXT NOT NULL, `icon` TEXT NOT NULL, `color` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `description` TEXT, `dailyLimit` INTEGER NOT NULL, `icon` TEXT NOT NULL, `color` INTEGER NOT NULL, `order` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -62,12 +62,6 @@
             "notNull": true
           },
           {
-            "fieldPath": "categories",
-            "columnName": "categories",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
             "fieldPath": "icon",
             "columnName": "icon",
             "affinity": "TEXT",
@@ -76,6 +70,12 @@
           {
             "fieldPath": "color",
             "columnName": "color",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "order",
+            "columnName": "order",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -128,11 +128,36 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "habit_categories_cross",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`habitId` INTEGER NOT NULL, `categoryId` INTEGER NOT NULL, PRIMARY KEY(`habitId`, `categoryId`))",
+        "fields": [
+          {
+            "fieldPath": "habitId",
+            "columnName": "habitId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoryId",
+            "columnName": "categoryId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "habitId",
+            "categoryId"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e7131b54996890fa4d14976e51852360')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0aa512b21ef47a3daac872fd451e543d')"
     ]
   }
 }

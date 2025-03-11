@@ -17,6 +17,12 @@ interface HabitCategoriesDao {
     @Query("SELECT * FROM habit_categories")
     fun getHabitCategories(): Flow<List<HabitCategoryEntity>>
 
+    @Query("SELECT * FROM habit_categories_cross")
+    fun getHabitCategoryCrossRefs(): Flow<List<HabitCategoryCrossRef>>
+
+    @Query("SELECT COUNT(*) FROM habit_categories_cross WHERE categoryId = :id")
+    suspend fun countHabitsForCategory(id: Long): Int
+
     @Query("DELETE FROM habit_categories WHERE id = :id")
     suspend fun delete(id: Long)
 

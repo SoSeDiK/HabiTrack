@@ -11,6 +11,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.paging.PagingData
+import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -47,9 +50,9 @@ private val habits = (1..10).map {
         name = "Habit $it",
         description = "This is habit $it",
         dailyLimit = 1,
-        categories = emptyList(),
         icon = HabitIcon.getById("star"),
-        color = PRE_PICKED_COLORS[0]
+        color = PRE_PICKED_COLORS[0],
+        order = it
     )
 }
 
@@ -60,9 +63,9 @@ fun HomePreview() {
         Surface {
             HabitListScreen(
                 state = HabitListState(
-                    categories = categories,
-                    filteredHabits = habits
+                    categories = categories
                 ),
+                habits = flowOf(PagingData.from(habits)).collectAsLazyPagingItems(),
                 onAction = {}
             )
         }

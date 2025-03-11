@@ -36,10 +36,12 @@ class GeneralSettingsViewModel(
     private fun loadInitialSettings() {
         viewModelScope.launch {
             val weekOnSunday = settingsRepository.isStartWeekOnSunday()
-            _state.value = _state.value.copy(
-                loadingData = false,
-                weekOnSunday = weekOnSunday
-            )
+            _state.update {
+                it.copy(
+                    loadingData = false,
+                    weekOnSunday = weekOnSunday
+                )
+            }
         }
     }
 

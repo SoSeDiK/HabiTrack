@@ -6,4 +6,6 @@ interface HabitCategoryRepository {
 
     fun getHabitCategories(): Flow<List<HabitCategory>>
 
+    fun getCategoriesWithHabits(): Flow<List<HabitCategory>>
+
 }

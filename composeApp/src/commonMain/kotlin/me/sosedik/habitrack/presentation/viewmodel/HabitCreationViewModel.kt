@@ -14,11 +14,11 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import me.sosedik.habitrack.data.database.HabitEntity
-import me.sosedik.habitrack.data.database.HabitsDao
+import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitCategoryRepository
 import me.sosedik.habitrack.data.domain.HabitIcon
+import me.sosedik.habitrack.data.domain.HabitRepository
 import me.sosedik.habitrack.util.CanNotBeEmptyError
 import me.sosedik.habitrack.util.HabiTrackError
 import me.sosedik.habitrack.util.PRE_PICKED_COLORS
@@ -32,18 +32,19 @@ private val DEFAULT_CUSTOM_COLOR = Color.White
 class HabitCreationViewModel(
     appViewModel: AppViewModel,
     val habitCategoryRepository: HabitCategoryRepository,
-    val habitsDao: HabitsDao
+    val habitRepository: HabitRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
         appViewModel.cachedHabit?.let { habit ->
             HabitCreationState(
+                updatingData = true,
                 habitId = habit.id,
                 dailyLimit = habit.dailyLimit,
-                pickedCategories = habit.categories,
                 icon = habit.icon,
                 color = habit.color,
-                customColor = if (PRE_PICKED_COLORS.contains(habit.color)) DEFAULT_CUSTOM_COLOR else habit.color
+                customColor = if (PRE_PICKED_COLORS.contains(habit.color)) DEFAULT_CUSTOM_COLOR else habit.color,
+                order = habit.order
             )
         } ?: HabitCreationState()
     )
@@ -68,7 +69,18 @@ class HabitCreationViewModel(
     private var observeHabitCategoriesJob: Job? = null
 
     init {
-        appViewModel.cachedHabit = null
+        appViewModel.cachedHabit?.let { habit ->
+            appViewModel.cachedHabit = null
+
+            viewModelScope.launch {
+                _state.update {
+                    it.copy(
+                        updatingData = false,
+                        pickedCategories = habitRepository.getCategoriesForHabit(habit)
+                    )
+                }
+            }
+        }
     }
 
     fun onAction(action: HabitCreationAction) {
@@ -103,22 +115,23 @@ class HabitCreationViewModel(
             }
             HabitCreationAction.SaveHabit -> {
                 val current = state.value
-                val habit = HabitEntity(
-                    id = current.habitId ?: 0L,
-                    name = nameState.text.trim().toString(),
-                    description = descriptionState.text.trim().toString().ifEmpty { null },
-                    dailyLimit = current.dailyLimit,
-                    categories = current.pickedCategories.map { it.id },
-                    icon = current.icon.id,
-                    color = current.color
-                )
                 _state.update {
-                    it.copy(savingData = true)
+                    it.copy(updatingData = true)
                 }
                 viewModelScope.launch {
-                    habitsDao.upsert(habit)
+                    var habit = Habit(
+                        id = current.habitId ?: 0L,
+                        name = nameState.text.trim().toString(),
+                        description = descriptionState.text.trim().toString().ifEmpty { null },
+                        dailyLimit = current.dailyLimit,
+                        icon = current.icon,
+                        color = current.color,
+                        order = current.order ?: (habitRepository.getMaxOrder() + 1)
+                    )
+                    habit = habitRepository.upsert(habit)
+                    habitRepository.updateHabitCategories(habit, current.pickedCategories)
                     _state.update {
-                        it.copy(savingData = false)
+                        it.copy(updatingData = false)
                     }
                 }
             }
@@ -175,14 +188,15 @@ sealed interface HabitCreationAction {
 }
 
 data class HabitCreationState(
-    val savingData: Boolean = false,
+    val updatingData: Boolean = false,
     val habitId: Long? = null,
     val dailyLimit: Int = 1,
     val allCategories: List<HabitCategory> = emptyList(),
     val pickedCategories: List<HabitCategory> = emptyList(),
     val icon: HabitIcon = HabitIcon.defaultIcon(),
     val color: Color = PRE_PICKED_COLORS[0],
-    val customColor: Color = DEFAULT_CUSTOM_COLOR
+    val customColor: Color = DEFAULT_CUSTOM_COLOR,
+    val order: Int? = null
 ) {
 
     fun isEditing(): Boolean {

@@ -28,24 +28,4 @@ class Converters {
         return Instant.fromEpochMilliseconds(millis)
     }
 
-    @TypeConverter
-    fun fromStringList(value: List<String>?): String? {
-        return if (value == null) null else Json.encodeToString(value)
-    }
-
-    @TypeConverter
-    fun toStringList(value: String?): List<String>? {
-        return if (value.isNullOrEmpty()) emptyList() else Json.decodeFromString(value)
-    }
-
-    @TypeConverter
-    fun fromLongList(value: List<Long>?): String? {
-        return if (value == null) null else Json.encodeToString(value)
-    }
-
-    @TypeConverter
-    fun toLongList(value: String?): List<Long>? {
-        return if (value.isNullOrEmpty()) emptyList() else Json.decodeFromString(value)
-    }
-
 }

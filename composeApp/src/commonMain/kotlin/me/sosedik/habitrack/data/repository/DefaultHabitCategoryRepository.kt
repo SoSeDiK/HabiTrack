@@ -1,6 +1,8 @@
 package me.sosedik.habitrack.data.repository
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import me.sosedik.habitrack.data.database.HabitCategoriesDao
 import me.sosedik.habitrack.data.domain.HabitCategory
@@ -15,5 +17,18 @@ class DefaultHabitCategoryRepository(
         return habitCategoriesDao.getHabitCategories()
             .map { entities -> entities.map { it.toDomain() } }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getCategoriesWithHabits(): Flow<List<HabitCategory>> {
+        return habitCategoriesDao.getHabitCategories()
+            .combine(habitCategoriesDao.getHabitCategoryCrossRefs()) { categories, crossRefs ->
+                val categoryIdsWithHabits = crossRefs.map { it.categoryId }.toSet()
+
+                categories.filter { category ->
+                    category.id in categoryIdsWithHabits
+                }.map { it.toDomain() }
+            }
+    }
+
 
 }

@@ -56,8 +56,10 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import habitrack.composeapp.generated.resources.Res
 import habitrack.composeapp.generated.resources.habit_details_action_desc_archive
 import habitrack.composeapp.generated.resources.habit_details_action_desc_calendar
@@ -107,9 +109,11 @@ fun HabitListScreenRoot(
     onHabitEdit: (Habit) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val habits: LazyPagingItems<Habit> = viewModel.habits.collectAsLazyPagingItems()
 
     HabitListScreen(
         state = state,
+        habits = habits,
         onAction = { action ->
             when (action) {
                 HabitListAction.OnOpenSettings -> onSettings()
@@ -126,6 +130,7 @@ fun HabitListScreenRoot(
 @Composable
 fun HabitListScreen(
     state: HabitListState,
+    habits: LazyPagingItems<Habit>,
     onAction: (HabitListAction) -> Unit
 ) {
     val blurValue by animateFloatAsState(targetValue = if (state.focusedHabit != null) 20F else 0F)
@@ -152,7 +157,11 @@ fun HabitListScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            HabitsList(state = state, onAction = onAction)
+            HabitsList(
+                state = state,
+                habits = habits,
+                onAction = onAction
+            )
         }
     }
 
@@ -301,11 +310,7 @@ private fun CategoryFilters(
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         items(
-            items = state.categories.filter { category ->
-                state.allHabits.fastAny { habit ->
-                    habit.categories.contains(category)
-                }
-            },
+            items = state.categories,
             key = { it.id }
         ) { category ->
             FilterCategory(
@@ -323,21 +328,32 @@ private fun CategoryFilters(
 @Composable
 private fun HabitsList(
     state: HabitListState,
+    habits: LazyPagingItems<Habit>,
     onAction: (HabitListAction) -> Unit
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         items(
-            items = state.filteredHabits,
-            key = { it.id }
-        ) { habit ->
-            ShortListHabit( // TODO more views
-                habit = habit,
-                completions = state.habitProgressions[habit.id] ?: emptyMap(),
-                allowActions = !state.updatingData,
-                onAction = onAction
-            )
+            count = habits.itemCount,
+            key = habits.itemKey { it.id }
+        ) { index ->
+            val habit: Habit? = habits[index]
+            if (habit == null) {
+                ShortListHabit(
+                    habit = null,
+                    completions = emptyMap(),
+                    allowActions = false,
+                    onAction = onAction
+                )
+            } else {
+                ShortListHabit( // TODO more views
+                    habit = habit,
+                    completions = state.habitProgressions[habit.id] ?: emptyMap(),
+                    allowActions = !state.updatingData,
+                    onAction = onAction
+                )
+            }
         }
     }
 }

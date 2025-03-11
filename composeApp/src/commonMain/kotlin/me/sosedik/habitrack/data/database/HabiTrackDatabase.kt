@@ -10,7 +10,8 @@ import androidx.room.TypeConverters
     entities = [
         HabitCategoryEntity::class,
         HabitEntity::class,
-        HabitEntryEntity::class
+        HabitEntryEntity::class,
+        HabitCategoryCrossRef::class
     ],
     version = 1
 )

@@ -1,14 +1,21 @@
 package me.sosedik.habitrack.presentation.viewmodel
 
-import androidx.compose.ui.util.fastFirstOrNull
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import com.kizitonwose.calendar.core.YearMonth
 import com.kizitonwose.calendar.core.minusMonths
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -30,7 +37,7 @@ import me.sosedik.habitrack.util.getStartOfDayInUTC
 import me.sosedik.habitrack.util.localDate
 
 class HabitListViewModel(
-    settingsRepository: SettingsRepository,
+    val settingsRepository: SettingsRepository,
     val habitCategoryRepository: HabitCategoryRepository,
     val habitRepository: HabitRepository,
     val habitEntryRepository: HabitEntryRepository
@@ -40,7 +47,6 @@ class HabitListViewModel(
     val state = _state
         .onStart {
             observeHabitCategories()
-            observeHabits()
         }
         .stateIn(
             viewModelScope,
@@ -48,19 +54,53 @@ class HabitListViewModel(
             _state.value
         )
 
-    private var observeHabitCategoriesJob: Job? = null
-    private var observeHabitsJob: Job? = null
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val habits: StateFlow<PagingData<Habit>> = _state
+        .map { it.filteredCategory }
+        .distinctUntilChanged()
+        .flatMapLatest { filteredCategory ->
+            val habitsFlow = filteredCategory?.let { category ->
+                habitRepository.getHabitsByCategory(category)
+            } ?: habitRepository.getAllHabits()
 
-    init {
-        viewModelScope.launch {
-            settingsRepository.getStartWeekOnSunday().collect {
-                refreshPreference { state ->
-                    state.copy(
-                        firstDayOfWeek = if (it) DayOfWeek.SUNDAY else DayOfWeek.MONDAY
-                    )
+            habitsFlow.map { pagingData -> // TODO remove this monstrosity
+                pagingData.map { habit ->
+                    val weekRange = getPriorDaysRangeUTC(dayOffset = 5)
+                    val habitProgressions: MutableMap<Long, Map<LocalDate, HabitEntry>> = _state.value.habitProgressions.toMutableMap()
+                    val completions: Map<LocalDate, HabitEntry> = habitEntryRepository.fetchByRange(habit, weekRange.first, weekRange.second)
+                    if (completions.isNotEmpty()) {
+                        val comp = habitProgressions.getOrElse(habit.id) { emptyMap() }.toMutableMap()
+                        comp.putAll(completions)
+                        habitProgressions[habit.id] = comp.toMap()
+                    }
+                    _state.update { it.copy(
+                        habitProgressions = habitProgressions.toMap()
+                    ) }
+                    habit
                 }
             }
         }
+        .cachedIn(viewModelScope)
+        .stateIn(viewModelScope, SharingStarted.Lazily, PagingData.empty())
+
+    private var observeWeekStartJob: Job? = null
+    private var observeHabitCategoriesJob: Job? = null
+    private var observeFocusedHabitJob: Job? = null
+
+    init {
+        observeWeekStart()
+        observeHabitCategories()
+    }
+
+    private fun observeWeekStart() {
+        observeWeekStartJob?.cancel()
+        observeWeekStartJob = settingsRepository.getStartWeekOnSunday().onEach {
+            refreshPreference { state ->
+                state.copy(
+                    firstDayOfWeek = if (it) DayOfWeek.SUNDAY else DayOfWeek.MONDAY
+                )
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun onAction(action: HabitListAction) {
@@ -69,10 +109,10 @@ class HabitListViewModel(
             is HabitListAction.OnHabitClick -> {
                 _state.update {
                     it.copy(
-                        updatingData = true,
-                        focusedHabit = action.habit
+                        updatingData = true
                     )
                 }
+                listenForFocusedHabitUpdates(action.habit)
                 val offset = 53 * 7 - getCurrentDayOfWeek() - 1
                 val range = getPriorDaysRangeUTC(dayOffset = offset)
                 val habitProgressions: MutableMap<Long, Map<LocalDate, HabitEntry>> = _state.value.habitProgressions.toMutableMap()
@@ -92,11 +132,11 @@ class HabitListViewModel(
                     it.copy(updatingData = true)
                 }
                 viewModelScope.launch {
+                    listenForFocusedHabitUpdates(null)
                     habitRepository.deleteHabit(action.habit)
                     _state.update {
                         it.copy(
-                            updatingData = false,
-                            focusedHabit = null
+                            updatingData = false
                         )
                     }
                 }
@@ -113,9 +153,7 @@ class HabitListViewModel(
                 updateHabitProgress(action.habit, date, action.increase)
             }
             HabitListAction.OnFocusCancel -> {
-                _state.update { it.copy(
-                    focusedHabit = null
-                ) }
+                listenForFocusedHabitUpdates(null)
             }
             is HabitListAction.OnCalendarMonthLoad -> {
                 val habit = _state.value.focusedHabit ?: return
@@ -198,18 +236,33 @@ class HabitListViewModel(
     private fun onHabitCategoryClick(category: HabitCategory) {
         val filteredCategory: HabitCategory? = if (_state.value.filteredCategory == category) null else category
         _state.update {
-            it.copy(updatingData = true)
+            it.copy(
+                filteredCategory = filteredCategory
+            )
         }
-        viewModelScope.launch {
-            val habits: List<Habit> = _state.value.allHabits
-            _state.update {
-                it.copy(
-                    updatingData = false,
-                    filteredCategory = filteredCategory,
-                    filteredHabits = if (filteredCategory == null) habits else habits.filter { habit ->
-                        habit.categories.contains(filteredCategory)
+    }
+
+    private fun listenForFocusedHabitUpdates(habit: Habit?) {
+        observeFocusedHabitJob?.cancel()
+        _state.update {
+            it.copy(focusedHabit = habit)
+        }
+        if (habit == null) {
+            observeFocusedHabitJob = null
+            return
+        }
+
+        observeFocusedHabitJob = viewModelScope.launch {
+            habitRepository.getHabitUpdates(habit).collect { updatedHabit ->
+                if (updatedHabit == null) {
+                    listenForFocusedHabitUpdates(null)
+                } else {
+                    if (_state.value.focusedHabit?.id == updatedHabit.id) {
+                        _state.update {
+                            it.copy(focusedHabit = updatedHabit)
+                        }
                     }
-                )
+                }
             }
         }
     }
@@ -217,7 +270,7 @@ class HabitListViewModel(
     private fun observeHabitCategories() {
         observeHabitCategoriesJob?.cancel()
         observeHabitCategoriesJob = habitCategoryRepository
-            .getHabitCategories()
+            .getCategoriesWithHabits()
             .onEach { habitCategories ->
                 _state.update { it.copy(
                     categories = habitCategories
@@ -226,37 +279,39 @@ class HabitListViewModel(
             .launchIn(viewModelScope)
     }
 
-    private fun observeHabits() {
-        observeHabitsJob?.cancel()
-        observeHabitsJob = habitRepository
-            .getHabits()
-            .onEach { habits ->
-                val filteredCategory: HabitCategory? = _state.value.filteredCategory
-                val filteredHabits = if (filteredCategory == null) habits else habits.filter { habit ->
-                        habit.categories.contains(filteredCategory)
-                    }
-
-                val weekRange = getPriorDaysRangeUTC(dayOffset = 5)
-                val habitProgressions: MutableMap<Long, Map<LocalDate, HabitEntry>> = hashMapOf()
-                filteredHabits.forEach { habit ->
-                    val completions: Map<LocalDate, HabitEntry> = habitEntryRepository.fetchByRange(habit, weekRange.first, weekRange.second)
-                    if (completions.isNotEmpty())
-                        habitProgressions.put(habit.id, completions)
-                }
-
-                _state.update { it.copy(
-                    focusedHabit = _state.value.focusedHabit?.let { habit -> habits.fastFirstOrNull { it.id == habit.id } },
-                    allHabits = habits,
-                    filteredHabits = filteredHabits,
-                    habitProgressions = habitProgressions
-                ) }
-            }
-            .launchIn(viewModelScope)
-    }
+//    private fun observeHabits() {
+//        observeHabitsJob?.cancel()
+//        observeHabitsJob = habitRepository
+//            .getHabits()
+//            .onEach { habits ->
+//                val filteredCategory: HabitCategory? = _state.value.filteredCategory
+//                val filteredHabits = if (filteredCategory == null) habits else habits.filter { habit ->
+//                        habit.categories.contains(filteredCategory)
+//                    }
+//
+//                val weekRange = getPriorDaysRangeUTC(dayOffset = 5)
+//                val habitProgressions: MutableMap<Long, Map<LocalDate, HabitEntry>> = hashMapOf()
+//                filteredHabits.forEach { habit ->
+//                    val completions: Map<LocalDate, HabitEntry> = habitEntryRepository.fetchByRange(habit, weekRange.first, weekRange.second)
+//                    if (completions.isNotEmpty())
+//                        habitProgressions.put(habit.id, completions)
+//                }
+//
+//                _state.update { it.copy(
+//                    focusedHabit = _state.value.focusedHabit?.let { habit -> habits.fastFirstOrNull { it.id == habit.id } },
+//                    allHabits = habits,
+//                    filteredHabits = filteredHabits,
+//                    habitProgressions = habitProgressions
+//                ) }
+//            }
+//            .launchIn(viewModelScope)
+//    }
 
     private fun refreshPreference(action: (HabitListState) -> HabitListState) {
         viewModelScope.launch {
-            _state.value = action(_state.value)
+            _state.update {
+                action(it)
+            }
         }
     }
 
@@ -283,7 +338,5 @@ data class HabitListState(
     val filteredCategory: HabitCategory? = null,
     val focusedHabit: Habit? = null,
     val categories: List<HabitCategory> = emptyList(),
-    val allHabits: List<Habit> = emptyList(),
-    val filteredHabits: List<Habit> = allHabits,
     val habitProgressions: Map<Long, Map<LocalDate, HabitEntry>> = emptyMap()
 )

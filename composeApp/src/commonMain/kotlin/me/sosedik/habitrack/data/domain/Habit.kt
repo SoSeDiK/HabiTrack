@@ -7,9 +7,9 @@ data class Habit(
     val name: String,
     val description: String?,
     val dailyLimit: Int,
-    val categories: List<HabitCategory>,
     val icon: HabitIcon,
-    val color: Color
+    val color: Color,
+    val order: Int
     // TODO streak goal (none, daily, weekly, monthly)
     // TODO remainder
 )
