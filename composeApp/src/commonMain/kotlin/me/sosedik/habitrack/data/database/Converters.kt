@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.room.TypeConverter
 import kotlinx.datetime.Instant
-import kotlinx.serialization.json.Json
 
 class Converters {
 

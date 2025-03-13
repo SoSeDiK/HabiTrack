@@ -40,6 +40,8 @@
     <string name="habit_creation_name">Name</string>
     <string name="habit_creation_description">Description</string>
     <string name="habit_creation_categories">Categories</string>
+    <string name="habit_creation_categories_none_picked">None</string>
+    <string name="habit_creation_categories_pick">Pick categories</string>
     <string name="habit_creation_daily_limit">Completions per day</string>
     <string name="habit_creation_daily_limit_day">Day</string>
     <string name="habit_creation_daily_limit_decrease">Decrease daily limit by 1</string>
@@ -49,6 +51,25 @@
     <string name="habit_creation_action_more_icons">More icons</string>
     <string name="habit_creation_action_color_picker">Open color picker</string>
     <string name="habit_creation_action_save">Save</string>
+
+    <!-- Categories picker -->
+    <string name="categories_picker_header">Categories</string>
+    <string name="categories_picker_description">Long press to edit/delete a category</string>
+    <string name="categories_picker_action_create">Create a new category</string>
+    <string name="categories_picker_action_save">Save</string>
+    <string name="categories_picker_action_edit">Edit category</string>
+    <string name="categories_picker_action_delete">Delete category</string>
+    <string name="categories_editor_new_header">Create category</string>
+    <string name="categories_editor_edit_header">Edit category</string>
+    <string name="categories_editor_action_abort_desc">Return back</string>
+    <string name="categories_editor_action_pick_icon_desc">Pick category icon</string>
+    <string name="categories_editor_action_create">Create</string>
+    <string name="categories_editor_action_edit">Save</string>
+
+    <!-- Category icon picker -->
+    <string name="category_icon_picker_header">Pick category icon</string>
+    <string name="category_icon_picker_action_abort_desc">Return back</string>
+    <string name="category_icon_picker_action_done">Save</string>
 
     <!-- Color picker -->
     <string name="color_picker_action_copy">Copy to clipboard</string>

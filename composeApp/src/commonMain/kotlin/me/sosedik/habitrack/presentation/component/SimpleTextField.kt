@@ -61,7 +61,7 @@ fun SimpleTextField(
                     Text(
                         modifier = Modifier
                             .padding(vertical = 5.dp)
-                            .padding(start = 12.dp),
+                            .padding(horizontal = 12.dp),
                         text = it,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.error

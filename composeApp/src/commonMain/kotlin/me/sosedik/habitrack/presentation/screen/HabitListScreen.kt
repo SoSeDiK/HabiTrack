@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -87,7 +88,7 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitEntry
-import me.sosedik.habitrack.presentation.component.FilterCategory
+import me.sosedik.habitrack.presentation.component.FilterCategoryChip
 import me.sosedik.habitrack.presentation.component.HabitCalendarProgressions
 import me.sosedik.habitrack.presentation.component.ShortListHabit
 import me.sosedik.habitrack.presentation.viewmodel.HabitListAction
@@ -313,7 +314,7 @@ private fun CategoryFilters(
             items = state.categories,
             key = { it.id }
         ) { category ->
-            FilterCategory(
+            FilterCategoryChip(
                 habitCategory = category,
                 selected = category == state.filteredCategory,
                 allowActions = !state.updatingData,
@@ -459,16 +460,14 @@ fun FocusedHabit(
         ) {
             Box(
                 modifier = Modifier
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = {
-                                if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, true))
-                            },
-                            onLongPress = {
-                                if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, false))
-                            }
-                        )
-                    }
+                    .combinedClickable(
+                        onClick = {
+                            if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, true))
+                        },
+                        onLongClick = {
+                            if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, currentDate, false))
+                        }
+                    )
                     .weight(1F)
                     .background(habit.color, RoundedCornerShape(8.dp))
                     .padding(5.dp)

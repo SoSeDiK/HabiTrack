@@ -8,10 +8,20 @@ import me.sosedik.habitrack.data.database.HabitCategoriesDao
 import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitCategoryRepository
 import me.sosedik.habitrack.data.mapper.toDomain
+import me.sosedik.habitrack.data.mapper.toEntity
 
 class DefaultHabitCategoryRepository(
     private val habitCategoriesDao: HabitCategoriesDao
 ): HabitCategoryRepository {
+
+    override suspend fun upsertCategory(entry: HabitCategory): HabitCategory {
+        val newId = habitCategoriesDao.upsert(entry.toEntity())
+        return if (newId == -1L) entry else entry.copy(id = newId)
+    }
+
+    override suspend fun deleteCategory(entry: HabitCategory) {
+        habitCategoriesDao.delete(entry.id)
+    }
 
     override fun getHabitCategories(): Flow<List<HabitCategory>> {
         return habitCategoriesDao.getHabitCategories()

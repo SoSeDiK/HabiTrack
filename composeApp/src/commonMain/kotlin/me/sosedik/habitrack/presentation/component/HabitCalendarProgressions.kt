@@ -2,6 +2,7 @@ package me.sosedik.habitrack.presentation.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -186,16 +187,14 @@ private fun Day(
     Column(
         modifier = Modifier
             .aspectRatio(1F)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, day.date, true))
-                    },
-                    onLongPress = {
-                        if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, day.date, false))
-                    }
-                )
-            },
+            .combinedClickable(
+                onClick = {
+                    if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, day.date, true))
+                },
+                onLongClick = {
+                    if (allowActions) onAction.invoke(HabitListAction.OnHabitProgressClick(habit, day.date, false))
+                }
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

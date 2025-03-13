@@ -279,34 +279,6 @@ class HabitListViewModel(
             .launchIn(viewModelScope)
     }
 
-//    private fun observeHabits() {
-//        observeHabitsJob?.cancel()
-//        observeHabitsJob = habitRepository
-//            .getHabits()
-//            .onEach { habits ->
-//                val filteredCategory: HabitCategory? = _state.value.filteredCategory
-//                val filteredHabits = if (filteredCategory == null) habits else habits.filter { habit ->
-//                        habit.categories.contains(filteredCategory)
-//                    }
-//
-//                val weekRange = getPriorDaysRangeUTC(dayOffset = 5)
-//                val habitProgressions: MutableMap<Long, Map<LocalDate, HabitEntry>> = hashMapOf()
-//                filteredHabits.forEach { habit ->
-//                    val completions: Map<LocalDate, HabitEntry> = habitEntryRepository.fetchByRange(habit, weekRange.first, weekRange.second)
-//                    if (completions.isNotEmpty())
-//                        habitProgressions.put(habit.id, completions)
-//                }
-//
-//                _state.update { it.copy(
-//                    focusedHabit = _state.value.focusedHabit?.let { habit -> habits.fastFirstOrNull { it.id == habit.id } },
-//                    allHabits = habits,
-//                    filteredHabits = filteredHabits,
-//                    habitProgressions = habitProgressions
-//                ) }
-//            }
-//            .launchIn(viewModelScope)
-//    }
-
     private fun refreshPreference(action: (HabitListState) -> HabitListState) {
         viewModelScope.launch {
             _state.update {

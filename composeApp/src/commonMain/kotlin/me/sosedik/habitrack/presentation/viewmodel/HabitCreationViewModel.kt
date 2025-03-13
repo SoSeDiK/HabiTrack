@@ -73,10 +73,11 @@ class HabitCreationViewModel(
             appViewModel.cachedHabit = null
 
             viewModelScope.launch {
+                val categories = habitRepository.getCategoriesForHabit(habit)
                 _state.update {
                     it.copy(
                         updatingData = false,
-                        pickedCategories = habitRepository.getCategoriesForHabit(habit)
+                        pickedCategories = categories
                     )
                 }
             }
@@ -135,13 +136,30 @@ class HabitCreationViewModel(
                     }
                 }
             }
-            is HabitCreationAction.ToggleCategory -> {
-                val categories = _state.value.pickedCategories.toMutableList()
-                if (!categories.remove(action.category))
-                    categories.add(action.category)
+            is HabitCreationAction.DeleteCategory -> {
+                _state.update {
+                    val allCategories = it.allCategories.toMutableList()
+                    val pickedCategories = it.pickedCategories.toMutableList()
+                    allCategories.remove(action.category)
+                    pickedCategories.remove(action.category)
+                    it.copy(
+                        allCategories = allCategories.toList(),
+                        pickedCategories = pickedCategories.toList()
+                    )
+                }
+                viewModelScope.launch {
+                    habitCategoryRepository.deleteCategory(action.category)
+                }
+            }
+            is HabitCreationAction.UpdateCategory -> {
+                viewModelScope.launch {
+                    habitCategoryRepository.upsertCategory(action.category)
+                }
+            }
+            is HabitCreationAction.SaveCategories -> {
                 _state.update {
                     it.copy(
-                        pickedCategories = categories.toList()
+                        pickedCategories = action.categories.toList()
                     )
                 }
             }
@@ -157,9 +175,14 @@ class HabitCreationViewModel(
         observeHabitCategoriesJob = habitCategoryRepository
             .getHabitCategories()
             .onEach { habitCategories ->
-                _state.update { it.copy(
-                    allCategories = habitCategories
-                ) }
+                _state.update { state ->
+                    val pickedCategoryIds = state.pickedCategories.map { it.id }.toSet()
+                    val pickedCategories = habitCategories.filter { it.id in pickedCategoryIds }
+                    state.copy(
+                        allCategories = habitCategories,
+                        pickedCategories = pickedCategories
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -179,10 +202,14 @@ sealed interface HabitCreationAction {
     data class UpdateIcon(val icon: HabitIcon) : HabitCreationAction
     data class UpdateColor(val color: Color) : HabitCreationAction
     data class UpdateCustomColor(val color: Color) : HabitCreationAction
-    data class ToggleCategory(val category: HabitCategory) : HabitCreationAction
+    data object EditCategories : HabitCreationAction
+    data class EditCategory(val category: HabitCategory) : HabitCreationAction
+    data class DeleteCategory(val category: HabitCategory) : HabitCreationAction
+    data class UpdateCategory(val category: HabitCategory) : HabitCreationAction
     data object ValidateName : HabitCreationAction
     data object SaveHabit : HabitCreationAction
-    data object DismissColor : HabitCreationAction
+    data class SaveCategories(val categories: List<HabitCategory>) : HabitCreationAction
+    data object AddCategory : HabitCreationAction
     data object Discard : HabitCreationAction
 
 }

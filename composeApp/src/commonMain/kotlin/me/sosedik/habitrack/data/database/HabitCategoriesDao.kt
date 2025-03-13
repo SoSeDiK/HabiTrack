@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface HabitCategoriesDao {
 
     @Upsert
-    suspend fun upsert(habit: HabitCategoryEntity)
+    suspend fun upsert(habit: HabitCategoryEntity): Long
 
     @Query("SELECT * FROM habit_categories WHERE id = :id")
     suspend fun getById(id: Long): HabitCategoryEntity?

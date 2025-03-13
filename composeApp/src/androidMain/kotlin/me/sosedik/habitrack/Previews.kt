@@ -23,6 +23,7 @@ import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.data.domain.HabitIcon
 import me.sosedik.habitrack.presentation.component.HabitCalendarProgressions
+import me.sosedik.habitrack.presentation.screen.CategoriesPicker
 import me.sosedik.habitrack.presentation.screen.ColorPicker
 import me.sosedik.habitrack.presentation.screen.FocusedHabit
 import me.sosedik.habitrack.presentation.screen.GeneralSettingsScreen
@@ -31,7 +32,6 @@ import me.sosedik.habitrack.presentation.screen.HabitListScreen
 import me.sosedik.habitrack.presentation.screen.SettingsScreen
 import me.sosedik.habitrack.presentation.theme.HabiTrackTheme
 import me.sosedik.habitrack.presentation.viewmodel.GeneralSettingsState
-import me.sosedik.habitrack.presentation.viewmodel.HabitCreationAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationState
 import me.sosedik.habitrack.presentation.viewmodel.HabitListState
 import me.sosedik.habitrack.util.PRE_PICKED_COLORS
@@ -79,10 +79,31 @@ fun HabitCreationPreview() {
         Surface {
             HabitCreationScreen(
                 state = HabitCreationState(
-                    allCategories = categories
+                    allCategories = categories,
+                    pickedCategories = categories.takeLast(8)
                 ),
                 nameState = rememberTextFieldState(initialText = "Sample habit"),
                 descriptionState = rememberTextFieldState(initialText = "This is a sample habit"),
+                onAction = {}
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun CategoriesPickerPreview() {
+    var state by remember { mutableStateOf(
+        HabitCreationState(
+            allCategories = categories,
+            pickedCategories = categories.takeLast(3)
+        )
+    ) }
+
+    HabiTrackTheme {
+        Surface {
+            CategoriesPicker(
+                state = state,
                 onAction = {}
             )
         }
@@ -102,16 +123,7 @@ fun ColorPickerPreview() {
         Surface {
             ColorPicker(
                 state = state,
-                onAction = { action ->
-                    when (action) {
-                        is HabitCreationAction.UpdateCustomColor -> {
-                            state = state.copy(
-                                customColor = action.color
-                            )
-                        }
-                        else -> Unit
-                    }
-                }
+                onAction = {}
             )
         }
     }
