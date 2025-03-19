@@ -1,5 +1,6 @@
 package me.sosedik.habitrack.di
 
+import androidx.compose.ui.text.font.FontFamily
 import androidx.room.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
@@ -7,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import me.sosedik.habitrack.data.database.DatabaseFactory
 import me.sosedik.habitrack.data.database.HabiTrackDatabase
 import me.sosedik.habitrack.data.database.HabitCategoryEntity
@@ -18,6 +20,8 @@ import me.sosedik.habitrack.data.repository.DefaultHabitCategoryRepository
 import me.sosedik.habitrack.data.repository.DefaultHabitEntryRepository
 import me.sosedik.habitrack.data.repository.DefaultHabitRepository
 import me.sosedik.habitrack.data.repository.DefaultSettingsRepository
+import me.sosedik.habitrack.presentation.theme.IconCache
+import me.sosedik.habitrack.presentation.theme.loadIcons
 import me.sosedik.habitrack.presentation.viewmodel.AppViewModel
 import me.sosedik.habitrack.presentation.viewmodel.GeneralSettingsViewModel
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationViewModel
@@ -39,7 +43,7 @@ val sharedModule = module {
                 override fun onCreate(connection: SQLiteConnection) {
                     super.onCreate(connection)
 
-                    var habitCategoriesDao = get<HabiTrackDatabase>().habitCategoriesDao
+                    val habitCategoriesDao = get<HabiTrackDatabase>().habitCategoriesDao
                     val defaultCategories = HabitCategoryEntity.getDefaultCategories()
                     CoroutineScope(Dispatchers.IO).launch {
                         defaultCategories.forEach { category ->
@@ -49,6 +53,14 @@ val sharedModule = module {
                 }
             })
             .build()
+    }
+
+    // Icons
+    single { (fontFamily: FontFamily?, mappingsFile: String) ->
+        runBlocking {
+            val icons = loadIcons(mappingsFile)
+            IconCache(icons, fontFamily)
+        }
     }
 
     // Data store

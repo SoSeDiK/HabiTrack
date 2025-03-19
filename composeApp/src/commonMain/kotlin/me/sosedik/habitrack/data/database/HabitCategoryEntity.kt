@@ -15,19 +15,19 @@ data class HabitCategoryEntity(
     companion object {
 
         fun getDefaultCategories(): List<HabitCategoryEntity> {
-            return listOf( // TODO should be localized // TODO icons
-                HabitCategoryEntity(name = "Art", icon = "art"),
-                HabitCategoryEntity(name = "Finances", icon = "finance"),
-                HabitCategoryEntity(name = "Fitness", icon = "fitness"),
-                HabitCategoryEntity(name = "Health", icon = "heart"),
-                HabitCategoryEntity(name = "Nutrition", icon = "nutrition"),
-                HabitCategoryEntity(name = "Social", icon = "social"),
-                HabitCategoryEntity(name = "Study", icon = "study"),
-                HabitCategoryEntity(name = "Work", icon = "work"),
-                HabitCategoryEntity(name = "Other", icon = "other"),
-                HabitCategoryEntity(name = "Morning", icon = "morning"),
-                HabitCategoryEntity(name = "Day", icon = "day"),
-                HabitCategoryEntity(name = "Evening", icon = "evening"),
+            return listOf( // TODO should be localized
+                HabitCategoryEntity(name = "Art", icon = "nf-md-palette_outline"),
+                HabitCategoryEntity(name = "Finances", icon = "nf-fa-money_bill_1"),
+                HabitCategoryEntity(name = "Fitness", icon = "nf-md-bicycle"),
+                HabitCategoryEntity(name = "Health", icon = "nf-oct-heart"),
+                HabitCategoryEntity(name = "Nutrition", icon = "nf-md-silverware_fork_knife"),
+                HabitCategoryEntity(name = "Social", icon = "nf-fa-comments_o"),
+                HabitCategoryEntity(name = "Study", icon = "nf-md-school_outline"),
+                HabitCategoryEntity(name = "Work", icon = "nf-cod-briefcase"),
+                HabitCategoryEntity(name = "Other", icon = "nf-oct-diamond"),
+                HabitCategoryEntity(name = "Morning", icon = "nf-weather-sunrise"),
+                HabitCategoryEntity(name = "Day", icon = "nf-fa-sun"),
+                HabitCategoryEntity(name = "Evening", icon = "nf-fa-moon")
             )
         }
 

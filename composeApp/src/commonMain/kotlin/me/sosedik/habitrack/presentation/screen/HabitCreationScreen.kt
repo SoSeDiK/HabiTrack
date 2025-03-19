@@ -44,7 +44,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -87,11 +86,10 @@ import habitrack.composeapp.generated.resources.Res
 import habitrack.composeapp.generated.resources.categories_editor_action_abort_desc
 import habitrack.composeapp.generated.resources.categories_editor_action_create
 import habitrack.composeapp.generated.resources.categories_editor_action_edit
-import habitrack.composeapp.generated.resources.categories_editor_action_pick_icon_desc
 import habitrack.composeapp.generated.resources.categories_editor_edit_header
 import habitrack.composeapp.generated.resources.categories_editor_new_header
-import habitrack.composeapp.generated.resources.categories_picker_action_delete
 import habitrack.composeapp.generated.resources.categories_picker_action_create
+import habitrack.composeapp.generated.resources.categories_picker_action_delete
 import habitrack.composeapp.generated.resources.categories_picker_action_edit
 import habitrack.composeapp.generated.resources.categories_picker_action_save
 import habitrack.composeapp.generated.resources.categories_picker_description
@@ -125,10 +123,10 @@ import habitrack.composeapp.generated.resources.ui_palette_24px
 import habitrack.composeapp.generated.resources.ui_remove_24px
 import kotlinx.coroutines.launch
 import me.sosedik.habitrack.data.domain.HabitCategory
-import me.sosedik.habitrack.data.domain.HabitIcon
 import me.sosedik.habitrack.presentation.component.FilterCategory
-import me.sosedik.habitrack.presentation.component.FilterCategoryChip
+import me.sosedik.habitrack.presentation.component.HabitIcon
 import me.sosedik.habitrack.presentation.component.SimpleTextField
+import me.sosedik.habitrack.presentation.theme.IconCache
 import me.sosedik.habitrack.presentation.viewmodel.DAILY_LIMIT_MAX
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationState
@@ -152,12 +150,14 @@ private enum class CategoryPage {
 @Composable
 fun HabitCreationScreenRoot(
     viewModel: HabitCreationViewModel = koinViewModel(),
+    iconCache: IconCache,
     onDiscard: () -> Unit,
     onSave: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     HabitCreationScreen(
+        iconCache = iconCache,
         state = state,
         nameState = viewModel.nameState,
         nameStateError = viewModel.nameStateError.collectAsState().value,
@@ -176,6 +176,7 @@ fun HabitCreationScreenRoot(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitCreationScreen(
+    iconCache: IconCache,
     state: HabitCreationState,
     nameState: TextFieldState,
     nameStateError: HabiTrackError? = null,
@@ -191,6 +192,7 @@ fun HabitCreationScreen(
     val nameInputFocusRequester = remember { FocusRequester() }
     val descriptionInputFocusRequester = remember { FocusRequester() }
     var showCategoriesPicker by remember { mutableStateOf(false) }
+    var showIconPicker by remember { mutableStateOf(false) }
     var showColorPicker by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
@@ -201,6 +203,12 @@ fun HabitCreationScreen(
         LaunchedEffect(Unit) {
             nameInputFocusRequester.requestFocus()
             keyboardController?.show()
+        }
+    }
+
+    if (state.icon.isEmpty()) {
+        LaunchedEffect(Unit) {
+            onAction.invoke(HabitCreationAction.UpdateIcon(iconCache.defaultIconKey))
         }
     }
 
@@ -299,6 +307,7 @@ fun HabitCreationScreen(
 
             CategoryLabel(name = stringResource(Res.string.habit_creation_categories))
             CategoriesOverview(
+                iconCache = iconCache,
                 state = state,
                 onAction = { action ->
                     if (action == HabitCreationAction.EditCategories)
@@ -362,40 +371,11 @@ fun HabitCreationScreen(
             }
 
             CategoryLabel(name = stringResource(Res.string.habit_creation_icon))
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = BOX_SIZE),
-                modifier = Modifier
-                    .heightIn(max = 1000.dp),
-                horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
-                verticalArrangement = Arrangement.spacedBy(GRID_SPACING)
-            ) {
-                items(
-                    items = HabitIcon.icons(),
-                    key = { it.id }
-                ) { icon ->
-                    IconButton(
-                        modifier = Modifier
-                            .aspectRatio(1F)
-                            .size(BOX_SIZE)
-                            .let {
-                                if (icon == state.icon)
-                                    it.border(1.dp, MaterialTheme.colorScheme.inverseSurface, RoundedCornerShape(8.dp))
-                                else
-                                    it.border(1.dp, MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.2F), shape = RoundedCornerShape(8.dp))
-                            }
-                            .background(MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(8.dp))
-                            .padding(5.dp),
-                        onClick = {
-                            onAction.invoke(HabitCreationAction.UpdateIcon(icon))
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(icon.resource),
-                            contentDescription = null
-                        )
-                    }
-                }
-            }
+            IconsOverview(
+                iconCache = iconCache,
+                state = state,
+                onAction = onAction
+            )
             Button(
                 modifier = Modifier
                     .align(Alignment.End),
@@ -404,7 +384,7 @@ fun HabitCreationScreen(
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 onClick = {
-                    // TODO More icons
+                    showIconPicker = true
                 }
             ) {
                 Text(
@@ -447,8 +427,8 @@ fun HabitCreationScreen(
         var currentPage by remember { mutableStateOf(CategoryPage.Overview) }
 
         var editingCategory by remember { mutableStateOf<HabitCategory?>(null) }
-        val nameState = rememberTextFieldState()
-        var pickedIcon by remember { mutableStateOf<HabitIcon?>(null) }
+        val categoryNameState = rememberTextFieldState()
+        var pickedIcon by remember { mutableStateOf<String?>(null) }
 
         ModalBottomSheet(
             sheetState = bottomSheetState,
@@ -469,19 +449,20 @@ fun HabitCreationScreen(
                 when (page) {
                     CategoryPage.Overview -> {
                         CategoriesPicker(
+                            iconCache = iconCache,
                             state = state,
                             onAction = { action ->
                                 when (action) {
                                     is HabitCreationAction.SaveCategories -> showCategoriesPicker = false
                                     HabitCreationAction.AddCategory -> {
                                         editingCategory = null
-                                        nameState.clearText()
+                                        categoryNameState.clearText()
                                         pickedIcon = null
                                         currentPage = CategoryPage.Edit
                                     }
                                     is HabitCreationAction.EditCategory -> {
                                         editingCategory = action.category
-                                        nameState.setTextAndPlaceCursorAtEnd(action.category.name)
+                                        categoryNameState.setTextAndPlaceCursorAtEnd(action.category.name)
                                         pickedIcon = action.category.icon
                                         currentPage = CategoryPage.Edit
                                     }
@@ -493,20 +474,21 @@ fun HabitCreationScreen(
                     }
                     CategoryPage.Edit -> {
                         CategoryEdit(
+                            iconCache = iconCache,
                             category = editingCategory,
-                            nameState = nameState,
+                            nameState = categoryNameState,
                             icon = pickedIcon,
                             onDismiss = {
                                 currentPage = CategoryPage.Overview
                                 editingCategory = null
-                                nameState.clearText()
+                                categoryNameState.clearText()
                                 pickedIcon = null
                             },
                             onSave = { category ->
                                 onAction.invoke(HabitCreationAction.UpdateCategory(category))
                                 currentPage = CategoryPage.Overview
                                 editingCategory = null
-                                nameState.clearText()
+                                categoryNameState.clearText()
                                 pickedIcon = null
                             },
                             onIconPick = {
@@ -515,7 +497,8 @@ fun HabitCreationScreen(
                         )
                     }
                     CategoryPage.IconPicker ->  {
-                        CategoryIconPicker(
+                        IconPicker(
+                            iconCache = iconCache,
                             icon = pickedIcon,
                             onDismiss = {
                                 currentPage = CategoryPage.Edit
@@ -528,6 +511,27 @@ fun HabitCreationScreen(
                     }
                 }
             }
+        }
+    }
+
+    if (showIconPicker) {
+        ModalBottomSheet(
+            sheetState = bottomSheetState,
+            onDismissRequest = {
+                showIconPicker = false
+            }
+        ) {
+            IconPicker(
+                iconCache = iconCache,
+                icon = state.icon.ifEmpty { null },
+                onDismiss = {
+                    showIconPicker = false
+                },
+                onIconPick = { icon ->
+                    onAction.invoke(HabitCreationAction.UpdateCustomIcon(icon))
+                    showIconPicker = false
+                }
+            )
         }
     }
 
@@ -550,8 +554,103 @@ fun HabitCreationScreen(
     }
 }
 
+private val prePickedIcons = listOf(
+    "nf-cod-pulse",
+    "nf-md-alarm",
+    "nf-fae-apple_fruit",
+    "nf-md-bed_outline",
+    "nf-fa-wallet",
+    "nf-md-hand_heart",
+    "nf-fa-dumbbell",
+    "nf-fa-book",
+    "nf-fa-terminal",
+    "nf-fa-laptop_code",
+    "nf-md-palette_outline",
+    "nf-fa-yin_yang",
+    "nf-cod-music",
+    "nf-fa-shower",
+    "nf-fa-bar_chart",
+    "nf-md-coffee_outline",
+    "nf-fa-dollar",
+    "nf-oct-heart",
+    "nf-fa-leaf",
+    "nf-md-spa_outline",
+    "nf-md-gamepad_variant_outline",
+    "nf-md-bicycle",
+    "nf-fa-person_running",
+)
+@Composable
+private fun IconsOverview(
+    iconCache: IconCache,
+    state: HabitCreationState,
+    onAction: (HabitCreationAction) -> Unit
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = BOX_SIZE),
+        modifier = Modifier
+            .heightIn(max = 400.dp),
+        horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
+        verticalArrangement = Arrangement.spacedBy(GRID_SPACING)
+    ) {
+        item {
+            IconItem(
+                icon =
+                    if (prePickedIcons.contains(state.customIcon))
+                        iconCache.defaultIconKey
+                    else
+                        state.customIcon.ifEmpty { iconCache.defaultIconKey },
+                iconCache = iconCache,
+                state = state,
+                onAction = onAction
+            )
+        }
+        items(
+            items = prePickedIcons,
+            key = { it }
+        ) { icon ->
+            IconItem(
+                icon = icon,
+                iconCache = iconCache,
+                state = state,
+                onAction = onAction
+            )
+        }
+    }
+}
+
+@Composable
+private fun IconItem(
+    icon: String,
+    iconCache: IconCache,
+    state: HabitCreationState,
+    onAction: (HabitCreationAction) -> Unit
+) {
+    IconButton(
+        modifier = Modifier
+            .aspectRatio(1F)
+            .size(BOX_SIZE)
+            .let {
+                if (icon == state.icon)
+                    it.border(1.dp, MaterialTheme.colorScheme.inverseSurface, RoundedCornerShape(8.dp))
+                else
+                    it.border(1.dp, MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.2F), shape = RoundedCornerShape(8.dp))
+            }
+            .background(MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(8.dp))
+            .padding(5.dp),
+        onClick = {
+            onAction.invoke(HabitCreationAction.UpdateIcon(icon))
+        }
+    ) {
+        HabitIcon(
+            iconCache = iconCache,
+            id = icon
+        )
+    }
+}
+
 @Composable
 private fun CategoriesOverview(
+    iconCache: IconCache,
     state: HabitCreationState,
     onAction: (HabitCreationAction) -> Unit
 ) {
@@ -587,6 +686,7 @@ private fun CategoriesOverview(
                     ) {
                         state.pickedCategories.forEach { category ->
                             FilterCategory(
+                                iconCache = iconCache,
                                 habitCategory = category,
                                 selected = false,
                                 backgroundColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -605,6 +705,7 @@ private fun CategoriesOverview(
 
 @Composable
 fun CategoriesPicker(
+    iconCache: IconCache,
     state: HabitCreationState,
     onAction: (HabitCreationAction) -> Unit
 ) {
@@ -637,6 +738,7 @@ fun CategoriesPicker(
                 
                 Box {
                     FilterCategory(
+                        iconCache = iconCache,
                         modifier = Modifier
                             .combinedClickable(
                                 onClick = {
@@ -727,9 +829,10 @@ fun CategoriesPicker(
 
 @Composable
 private fun CategoryEdit(
+    iconCache: IconCache,
     category: HabitCategory?,
     nameState: TextFieldState,
-    icon: HabitIcon?,
+    icon: String?,
     onDismiss: () -> Unit,
     onSave: (HabitCategory) -> Unit,
     onIconPick: () -> Unit
@@ -764,10 +867,9 @@ private fun CategoryEdit(
             IconButton(
                 onClick = onIconPick
             ) {
-                Icon(
-                    modifier = Modifier.size(FilterChipDefaults.IconSize),
-                    painter = painterResource(icon?.resource ?: HabitIcon.defaultIcon().resource),
-                    contentDescription = stringResource(Res.string.categories_editor_action_pick_icon_desc)
+                HabitIcon(
+                    iconCache = iconCache,
+                    id = icon
                 )
             }
             SimpleTextField(
@@ -808,7 +910,7 @@ private fun CategoryEdit(
                     onSave.invoke(HabitCategory(
                         id = category?.id ?: 0L,
                         name = nameState.text.toString(),
-                        icon = icon ?: HabitIcon.defaultIcon()
+                        icon = icon ?: iconCache.defaultIconKey
                     ))
                 }
             )
@@ -817,12 +919,14 @@ private fun CategoryEdit(
 }
 
 @Composable
-private fun CategoryIconPicker(
-    icon: HabitIcon?,
+private fun IconPicker(
+    iconCache: IconCache,
+    icon: String?,
     onDismiss: () -> Unit,
-    onIconPick: (HabitIcon) -> Unit
+    onIconPick: (String) -> Unit
 ) {
-    var pickedIcon by remember { mutableStateOf(icon ?: HabitIcon.defaultIcon()) }
+    val iconNameFilter = rememberTextFieldState()
+    var pickedIcon by remember { mutableStateOf(icon ?: iconCache.defaultIconKey) }
 
     Column(
         modifier = Modifier
@@ -835,16 +939,48 @@ private fun CategoryIconPicker(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HabitIcon(
+                modifier = Modifier.size(BOX_SIZE),
+                iconCache = iconCache,
+                id = pickedIcon
+            )
+            SimpleTextField(
+                state = iconNameFilter,
+                lineLimits = TextFieldLineLimits.SingleLine,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrectEnabled = true,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search
+                )
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = BOX_SIZE),
             modifier = Modifier
-                .heightIn(max = 1000.dp),
+                .heightIn(max = 400.dp),
             horizontalArrangement = Arrangement.spacedBy(GRID_SPACING),
             verticalArrangement = Arrangement.spacedBy(GRID_SPACING)
         ) {
             items(
-                items = HabitIcon.icons(),
-                key = { it.id }
+                items =
+                    if (iconNameFilter.text.isBlank())
+                        iconCache.mappings.keys.toList()
+                    else
+                        iconCache.mappings.keys.filter { key ->
+                            for (text in iconNameFilter.text.split(" ")) {
+                                if (!key.contains(text, ignoreCase = true))
+                                    return@filter false
+                            }
+                            return@filter true
+                        }.toList(),
+                key = { it }
             ) { icon ->
                 IconButton(
                     modifier = Modifier
@@ -862,9 +998,9 @@ private fun CategoryIconPicker(
                         pickedIcon = icon
                     }
                 ) {
-                    Icon(
-                        painter = painterResource(icon.resource),
-                        contentDescription = null
+                    HabitIcon(
+                        iconCache = iconCache,
+                        id = icon
                     )
                 }
             }

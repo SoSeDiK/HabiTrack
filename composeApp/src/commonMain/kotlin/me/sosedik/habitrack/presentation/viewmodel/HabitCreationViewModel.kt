@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitCategoryRepository
-import me.sosedik.habitrack.data.domain.HabitIcon
 import me.sosedik.habitrack.data.domain.HabitRepository
 import me.sosedik.habitrack.util.CanNotBeEmptyError
 import me.sosedik.habitrack.util.HabiTrackError
@@ -31,8 +30,8 @@ private val DEFAULT_CUSTOM_COLOR = Color.White
 
 class HabitCreationViewModel(
     appViewModel: AppViewModel,
-    val habitCategoryRepository: HabitCategoryRepository,
-    val habitRepository: HabitRepository
+    private val habitCategoryRepository: HabitCategoryRepository,
+    private val habitRepository: HabitRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -99,6 +98,14 @@ class HabitCreationViewModel(
             is HabitCreationAction.UpdateIcon -> {
                 _state.update {
                     it.copy(icon = action.icon)
+                }
+            }
+            is HabitCreationAction.UpdateCustomIcon -> {
+                _state.update {
+                    it.copy(
+                        icon = action.icon,
+                        customIcon = action.icon
+                    )
                 }
             }
             is HabitCreationAction.UpdateColor -> {
@@ -199,7 +206,8 @@ sealed interface HabitCreationAction {
 
     data object IncreaseDailyLimit : HabitCreationAction
     data object DecreaseDailyLimit : HabitCreationAction
-    data class UpdateIcon(val icon: HabitIcon) : HabitCreationAction
+    data class UpdateIcon(val icon: String) : HabitCreationAction
+    data class UpdateCustomIcon(val icon: String) : HabitCreationAction
     data class UpdateColor(val color: Color) : HabitCreationAction
     data class UpdateCustomColor(val color: Color) : HabitCreationAction
     data object EditCategories : HabitCreationAction
@@ -220,7 +228,8 @@ data class HabitCreationState(
     val dailyLimit: Int = 1,
     val allCategories: List<HabitCategory> = emptyList(),
     val pickedCategories: List<HabitCategory> = emptyList(),
-    val icon: HabitIcon = HabitIcon.defaultIcon(),
+    val icon: String = "",
+    val customIcon: String = "",
     val color: Color = PRE_PICKED_COLORS[0],
     val customColor: Color = DEFAULT_CUSTOM_COLOR,
     val order: Int? = null

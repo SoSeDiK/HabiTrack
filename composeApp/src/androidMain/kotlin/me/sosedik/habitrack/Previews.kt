@@ -6,10 +6,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -21,7 +17,6 @@ import kotlinx.datetime.minus
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitCategory
 import me.sosedik.habitrack.data.domain.HabitEntry
-import me.sosedik.habitrack.data.domain.HabitIcon
 import me.sosedik.habitrack.presentation.component.HabitCalendarProgressions
 import me.sosedik.habitrack.presentation.screen.CategoriesPicker
 import me.sosedik.habitrack.presentation.screen.ColorPicker
@@ -31,17 +26,25 @@ import me.sosedik.habitrack.presentation.screen.HabitCreationScreen
 import me.sosedik.habitrack.presentation.screen.HabitListScreen
 import me.sosedik.habitrack.presentation.screen.SettingsScreen
 import me.sosedik.habitrack.presentation.theme.HabiTrackTheme
+import me.sosedik.habitrack.presentation.theme.IconCache
 import me.sosedik.habitrack.presentation.viewmodel.GeneralSettingsState
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationState
 import me.sosedik.habitrack.presentation.viewmodel.HabitListState
 import me.sosedik.habitrack.util.PRE_PICKED_COLORS
 import me.sosedik.habitrack.util.localDate
 
+private val iconCache = IconCache(
+    mappings = mapOf(
+        "star" to "*"
+    ),
+    fontFamily = null
+)
+
 private val categories = (1..10).map {
     HabitCategory(
         id = it.toLong(),
         name = "Cat $it",
-        icon = HabitIcon.getById("star")
+        icon = iconCache.defaultIconKey
     )
 }
 private val habits = (1..10).map {
@@ -50,7 +53,7 @@ private val habits = (1..10).map {
         name = "Habit $it",
         description = "This is habit $it",
         dailyLimit = 1,
-        icon = HabitIcon.getById("star"),
+        icon = iconCache.defaultIconKey,
         color = PRE_PICKED_COLORS[0],
         order = it
     )
@@ -62,6 +65,7 @@ fun HomePreview() {
     HabiTrackTheme {
         Surface {
             HabitListScreen(
+                iconCache = iconCache,
                 state = HabitListState(
                     categories = categories
                 ),
@@ -78,6 +82,7 @@ fun HabitCreationPreview() {
     HabiTrackTheme {
         Surface {
             HabitCreationScreen(
+                iconCache = iconCache,
                 state = HabitCreationState(
                     allCategories = categories,
                     pickedCategories = categories.takeLast(8)
@@ -93,17 +98,14 @@ fun HabitCreationPreview() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun CategoriesPickerPreview() {
-    var state by remember { mutableStateOf(
-        HabitCreationState(
-            allCategories = categories,
-            pickedCategories = categories.takeLast(3)
-        )
-    ) }
-
     HabiTrackTheme {
         Surface {
             CategoriesPicker(
-                state = state,
+                iconCache = iconCache,
+                state = HabitCreationState(
+                    allCategories = categories,
+                    pickedCategories = categories.takeLast(3)
+                ),
                 onAction = {}
             )
         }
@@ -113,16 +115,12 @@ fun CategoriesPickerPreview() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ColorPickerPreview() {
-    var state by remember { mutableStateOf(
-        HabitCreationState(
-            allCategories = categories
-        )
-    ) }
-
     HabiTrackTheme {
         Surface {
             ColorPicker(
-                state = state,
+                state = HabitCreationState(
+                    allCategories = categories
+                ),
                 onAction = {}
             )
         }
@@ -135,6 +133,7 @@ fun FocusedHabitPreview() {
     HabiTrackTheme {
         Surface {
             FocusedHabit(
+                iconCache = iconCache,
                 habit = habits[0],
                 completions = mapOf(
                     localDate().minus(0, DateTimeUnit.WEEK).minus(1, DateTimeUnit.DAY) to HabitEntry(1, 1, Clock.System.now(), 1, 1),

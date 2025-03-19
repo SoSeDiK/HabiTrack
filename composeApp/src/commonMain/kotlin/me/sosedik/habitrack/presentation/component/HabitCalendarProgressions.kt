@@ -3,7 +3,6 @@ package me.sosedik.habitrack.presentation.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,10 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.kizitonwose.calendar.compose.CalendarState
@@ -70,7 +67,7 @@ fun HabitCalendarProgressions(
     onAction: (HabitListAction) -> Unit
 ) {
     val today by remember { mutableStateOf(localDate()) } // TODO check this, update on day change?
-    var daysOfWeek by remember { mutableStateOf(daysOfWeek(firstDayOfWeek)) }
+    val daysOfWeek by remember { mutableStateOf(daysOfWeek(firstDayOfWeek)) }
 
     val state = rememberCalendarState(
         startMonth = YearMonth(0, 1),

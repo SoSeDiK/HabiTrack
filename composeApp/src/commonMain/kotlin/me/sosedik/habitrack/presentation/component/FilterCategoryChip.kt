@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,10 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import me.sosedik.habitrack.data.domain.HabitCategory
-import org.jetbrains.compose.resources.painterResource
+import me.sosedik.habitrack.presentation.theme.IconCache
 
 @Composable
 fun FilterCategoryChip(
+    iconCache: IconCache,
     habitCategory: HabitCategory,
     selected: Boolean,
     allowActions: Boolean,
@@ -39,10 +39,10 @@ fun FilterCategoryChip(
             Text(text = habitCategory.name)
         },
         leadingIcon = {
-            Icon(
+            HabitIcon(
+                iconCache = iconCache,
                 modifier = Modifier.size(FilterChipDefaults.IconSize),
-                painter = painterResource(habitCategory.icon.resource),
-                contentDescription = null
+                id = habitCategory.icon
             )
         }
     )
@@ -51,6 +51,7 @@ fun FilterCategoryChip(
 @Composable
 fun FilterCategory(
     modifier: Modifier = Modifier,
+    iconCache: IconCache,
     habitCategory: HabitCategory,
     selected: Boolean,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer
@@ -66,10 +67,10 @@ fun FilterCategory(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
+        HabitIcon(
+            iconCache = iconCache,
             modifier = Modifier.size(FilterChipDefaults.IconSize),
-            painter = painterResource(habitCategory.icon.resource),
-            contentDescription = null
+            id = habitCategory.icon,
         )
         Text(
             text = habitCategory.name

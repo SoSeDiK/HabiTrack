@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,7 +54,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
@@ -90,7 +88,9 @@ import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitEntry
 import me.sosedik.habitrack.presentation.component.FilterCategoryChip
 import me.sosedik.habitrack.presentation.component.HabitCalendarProgressions
+import me.sosedik.habitrack.presentation.component.HabitIcon
 import me.sosedik.habitrack.presentation.component.ShortListHabit
+import me.sosedik.habitrack.presentation.theme.IconCache
 import me.sosedik.habitrack.presentation.viewmodel.HabitListAction
 import me.sosedik.habitrack.presentation.viewmodel.HabitListState
 import me.sosedik.habitrack.presentation.viewmodel.HabitListViewModel
@@ -105,6 +105,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun HabitListScreenRoot(
     viewModel: HabitListViewModel = koinViewModel(),
+    iconCache: IconCache,
     onSettings: () -> Unit,
     onNewHabitCreation: () -> Unit,
     onHabitEdit: (Habit) -> Unit
@@ -113,6 +114,7 @@ fun HabitListScreenRoot(
     val habits: LazyPagingItems<Habit> = viewModel.habits.collectAsLazyPagingItems()
 
     HabitListScreen(
+        iconCache = iconCache,
         state = state,
         habits = habits,
         onAction = { action ->
@@ -130,6 +132,7 @@ fun HabitListScreenRoot(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun HabitListScreen(
+    iconCache: IconCache,
     state: HabitListState,
     habits: LazyPagingItems<Habit>,
     onAction: (HabitListAction) -> Unit
@@ -152,13 +155,21 @@ fun HabitListScreen(
                 .navigationBarsPadding()
                 .padding(horizontal = 8.dp)
         ) {
-            Header(state = state, onAction = onAction)
+            Header(
+                state = state,
+                onAction = onAction
+            )
 
-            CategoryFilters(state = state, onAction = onAction)
+            CategoryFilters(
+                iconCache = iconCache,
+                state = state,
+                onAction = onAction
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
             HabitsList(
+                iconCache = iconCache,
                 state = state,
                 habits = habits,
                 onAction = onAction
@@ -192,6 +203,7 @@ fun HabitListScreen(
                 contentColor = contentColorFor(MaterialTheme.colorScheme.surface)
             ) {
                 FocusedHabit(
+                    iconCache = iconCache,
                     habit = focusedHabit,
                     completions = completions,
                     allowActions = !state.updatingData,
@@ -304,6 +316,7 @@ private fun HeaderButton(
 
 @Composable
 private fun CategoryFilters(
+    iconCache: IconCache,
     state: HabitListState,
     onAction: (HabitListAction) -> Unit
 ) {
@@ -315,6 +328,7 @@ private fun CategoryFilters(
             key = { it.id }
         ) { category ->
             FilterCategoryChip(
+                iconCache = iconCache,
                 habitCategory = category,
                 selected = category == state.filteredCategory,
                 allowActions = !state.updatingData,
@@ -328,6 +342,7 @@ private fun CategoryFilters(
 
 @Composable
 private fun HabitsList(
+    iconCache: IconCache,
     state: HabitListState,
     habits: LazyPagingItems<Habit>,
     onAction: (HabitListAction) -> Unit
@@ -342,6 +357,7 @@ private fun HabitsList(
             val habit: Habit? = habits[index]
             if (habit == null) {
                 ShortListHabit(
+                    iconCache = iconCache,
                     habit = null,
                     completions = emptyMap(),
                     allowActions = false,
@@ -349,6 +365,7 @@ private fun HabitsList(
                 )
             } else {
                 ShortListHabit( // TODO more views
+                    iconCache = iconCache,
                     habit = habit,
                     completions = state.habitProgressions[habit.id] ?: emptyMap(),
                     allowActions = !state.updatingData,
@@ -361,6 +378,7 @@ private fun HabitsList(
 
 @Composable
 fun FocusedHabit(
+    iconCache: IconCache,
     habit: Habit,
     completions: Map<LocalDate, HabitEntry>,
     allowActions: Boolean, // TODO separate allow actions from button enabled states (it flickers)
@@ -415,11 +433,11 @@ fun FocusedHabit(
                     .sizeIn(minHeight = 24.dp, maxHeight = 32.dp)
                     .background(desaturatedColor, shape = RoundedCornerShape(6.dp)),
             ) {
-                Icon(
+                HabitIcon(
+                    iconCache = iconCache,
                     modifier = Modifier
                         .padding(3.dp),
-                    painter = painterResource(habit.icon.resource),
-                    contentDescription = null
+                    id = habit.icon
                 )
             }
             Text(

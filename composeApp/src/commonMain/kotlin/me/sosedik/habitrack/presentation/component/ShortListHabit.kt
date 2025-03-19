@@ -1,6 +1,5 @@
 package me.sosedik.habitrack.presentation.component
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,19 +32,19 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import me.sosedik.habitrack.data.domain.Habit
 import me.sosedik.habitrack.data.domain.HabitEntry
+import me.sosedik.habitrack.presentation.theme.IconCache
 import me.sosedik.habitrack.presentation.viewmodel.HabitListAction
 import me.sosedik.habitrack.util.calculateColor
 import me.sosedik.habitrack.util.getDesaturatedColor
 import me.sosedik.habitrack.util.getPriorDayProgress
 import me.sosedik.habitrack.util.localDate
 import me.sosedik.habitrack.util.locale
-import org.jetbrains.compose.resources.painterResource
 
 private val PLACEHOLDER_COLOR = Color.Gray
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShortListHabit(
+    iconCache: IconCache,
     habit: Habit?,
     completions: Map<LocalDate, HabitEntry>,
     allowActions: Boolean,
@@ -82,11 +80,11 @@ fun ShortListHabit(
                     .background(desaturatedColor, shape = RoundedCornerShape(6.dp)),
             ) {
                 if (habit != null) {
-                    Icon(
+                    HabitIcon(
+                        iconCache = iconCache,
                         modifier = Modifier
                             .padding(3.dp),
-                        painter = painterResource(habit.icon.resource),
-                        contentDescription = null
+                        id = habit.icon
                     )
                 }
             }

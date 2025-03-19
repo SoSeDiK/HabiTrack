@@ -2,10 +2,12 @@ package me.sosedik.habitrack.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import androidx.compose.ui.text.font.FontWeight
+import habitrack.composeapp.generated.resources.Res
+import habitrack.composeapp.generated.resources.symbols_nerd_font_mono
+import org.jetbrains.compose.resources.Font
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
-fun MaterialSymbolsFontFamily() = FontFamily(
-//    Font(Res.font.material_symbols_rounded_light, weight = FontWeight.Light)
+fun NerdSymbolsFontFamily() = FontFamily(
+    Font(Res.font.symbols_nerd_font_mono, weight = FontWeight.Light)
 )

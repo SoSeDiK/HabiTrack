@@ -8,6 +8,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.font.FontFamily
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,14 +19,20 @@ import me.sosedik.habitrack.presentation.screen.HabitCreationScreenRoot
 import me.sosedik.habitrack.presentation.screen.HabitListScreenRoot
 import me.sosedik.habitrack.presentation.screen.SettingsScreenRoot
 import me.sosedik.habitrack.presentation.theme.HabiTrackTheme
+import me.sosedik.habitrack.presentation.theme.IconCache
+import me.sosedik.habitrack.presentation.theme.NerdSymbolsFontFamily
 import me.sosedik.habitrack.presentation.viewmodel.AppViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Preview
 @Composable
 fun App(
-    viewModel: AppViewModel = koinViewModel()
+    viewModel: AppViewModel = koinViewModel(),
+    iconsFontFamily: FontFamily = NerdSymbolsFontFamily(),
+    iconCache: IconCache = getKoin().get { parametersOf(iconsFontFamily, "nerd_symbols") }
 ) {
     val navController: NavHostController = rememberNavController()
 
@@ -37,6 +44,7 @@ fun App(
             navigation<Route.Home>(startDestination = Route.Home.Overview) {
                 composable<Route.Home.Overview> {
                     HabitListScreenRoot(
+                        iconCache = iconCache,
                         onSettings = {
                             navController.navigate(Route.Settings.Overview)
                         },
@@ -58,6 +66,7 @@ fun App(
                     }
                 ) {
                     HabitCreationScreenRoot(
+                        iconCache = iconCache,
                         onDiscard = {
                             navController.popBackStack()
                         },
