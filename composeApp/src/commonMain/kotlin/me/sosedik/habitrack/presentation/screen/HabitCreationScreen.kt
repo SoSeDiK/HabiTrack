@@ -94,9 +94,6 @@ import habitrack.composeapp.generated.resources.categories_picker_action_edit
 import habitrack.composeapp.generated.resources.categories_picker_action_save
 import habitrack.composeapp.generated.resources.categories_picker_description
 import habitrack.composeapp.generated.resources.categories_picker_header
-import habitrack.composeapp.generated.resources.category_icon_picker_action_abort_desc
-import habitrack.composeapp.generated.resources.category_icon_picker_action_done
-import habitrack.composeapp.generated.resources.category_icon_picker_header
 import habitrack.composeapp.generated.resources.color_picker_action_copy
 import habitrack.composeapp.generated.resources.color_picker_action_done
 import habitrack.composeapp.generated.resources.color_picker_action_paste
@@ -116,6 +113,9 @@ import habitrack.composeapp.generated.resources.habit_creation_header
 import habitrack.composeapp.generated.resources.habit_creation_header_editor
 import habitrack.composeapp.generated.resources.habit_creation_icon
 import habitrack.composeapp.generated.resources.habit_creation_name
+import habitrack.composeapp.generated.resources.icon_picker_action_abort_desc
+import habitrack.composeapp.generated.resources.icon_picker_action_done
+import habitrack.composeapp.generated.resources.icon_picker_header
 import habitrack.composeapp.generated.resources.ui_add_24px
 import habitrack.composeapp.generated.resources.ui_content_copy_24px
 import habitrack.composeapp.generated.resources.ui_content_paste_24px
@@ -934,7 +934,7 @@ private fun IconPicker(
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Text(
-            text = stringResource(Res.string.category_icon_picker_header),
+            text = stringResource(Res.string.icon_picker_header),
             style = MaterialTheme.typography.titleMedium
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -1016,11 +1016,11 @@ private fun IconPicker(
             ) {
                 Icon(
                     Icons.AutoMirrored.Default.KeyboardArrowLeft,
-                    contentDescription = stringResource(Res.string.category_icon_picker_action_abort_desc)
+                    contentDescription = stringResource(Res.string.icon_picker_action_abort_desc)
                 )
             }
             PickerAction(
-                text = stringResource(Res.string.category_icon_picker_action_done),
+                text = stringResource(Res.string.icon_picker_action_done),
                 onClick = {
                     onIconPick(pickedIcon)
                 }

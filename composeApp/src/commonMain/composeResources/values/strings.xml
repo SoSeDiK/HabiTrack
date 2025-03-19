@@ -66,10 +66,10 @@
     <string name="categories_editor_action_create">Create</string>
     <string name="categories_editor_action_edit">Save</string>
 
-    <!-- Category icon picker -->
-    <string name="category_icon_picker_header">Pick category icon</string>
-    <string name="category_icon_picker_action_abort_desc">Return back</string>
-    <string name="category_icon_picker_action_done">Save</string>
+    <!-- Icon picker -->
+    <string name="icon_picker_header">Pick icon</string>
+    <string name="icon_picker_action_abort_desc">Return back</string>
+    <string name="icon_picker_action_done">Save</string>
 
     <!-- Color picker -->
     <string name="color_picker_action_copy">Copy to clipboard</string>
