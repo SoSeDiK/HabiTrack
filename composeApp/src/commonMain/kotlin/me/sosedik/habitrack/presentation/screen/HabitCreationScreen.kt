@@ -142,6 +142,31 @@ import org.koin.compose.viewmodel.koinViewModel
 
 private val BOX_SIZE = 34.dp
 private val GRID_SPACING = 15.dp
+val PRE_PICKED_ICONS = listOf(
+    "nf-cod-pulse",
+    "nf-md-alarm",
+    "nf-fae-apple_fruit",
+    "nf-md-bed_outline",
+    "nf-fa-wallet",
+    "nf-md-hand_heart",
+    "nf-fa-dumbbell",
+    "nf-fa-book",
+    "nf-fa-terminal",
+    "nf-fa-laptop_code",
+    "nf-md-palette_outline",
+    "nf-fa-yin_yang",
+    "nf-cod-music",
+    "nf-fa-shower",
+    "nf-fa-bar_chart",
+    "nf-md-coffee_outline",
+    "nf-fa-dollar",
+    "nf-oct-heart",
+    "nf-fa-leaf",
+    "nf-md-spa_outline",
+    "nf-md-gamepad_variant_outline",
+    "nf-md-bicycle",
+    "nf-fa-person_running",
+)
 
 private enum class CategoryPage {
     Overview, Edit, IconPicker
@@ -554,31 +579,6 @@ fun HabitCreationScreen(
     }
 }
 
-private val prePickedIcons = listOf(
-    "nf-cod-pulse",
-    "nf-md-alarm",
-    "nf-fae-apple_fruit",
-    "nf-md-bed_outline",
-    "nf-fa-wallet",
-    "nf-md-hand_heart",
-    "nf-fa-dumbbell",
-    "nf-fa-book",
-    "nf-fa-terminal",
-    "nf-fa-laptop_code",
-    "nf-md-palette_outline",
-    "nf-fa-yin_yang",
-    "nf-cod-music",
-    "nf-fa-shower",
-    "nf-fa-bar_chart",
-    "nf-md-coffee_outline",
-    "nf-fa-dollar",
-    "nf-oct-heart",
-    "nf-fa-leaf",
-    "nf-md-spa_outline",
-    "nf-md-gamepad_variant_outline",
-    "nf-md-bicycle",
-    "nf-fa-person_running",
-)
 @Composable
 private fun IconsOverview(
     iconCache: IconCache,
@@ -595,7 +595,7 @@ private fun IconsOverview(
         item {
             IconItem(
                 icon =
-                    if (prePickedIcons.contains(state.customIcon))
+                    if (PRE_PICKED_ICONS.contains(state.customIcon))
                         iconCache.defaultIconKey
                     else
                         state.customIcon.ifEmpty { iconCache.defaultIconKey },
@@ -605,7 +605,7 @@ private fun IconsOverview(
             )
         }
         items(
-            items = prePickedIcons,
+            items = PRE_PICKED_ICONS,
             key = { it }
         ) { icon ->
             IconItem(

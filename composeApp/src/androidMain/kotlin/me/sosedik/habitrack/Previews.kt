@@ -24,6 +24,7 @@ import me.sosedik.habitrack.presentation.screen.FocusedHabit
 import me.sosedik.habitrack.presentation.screen.GeneralSettingsScreen
 import me.sosedik.habitrack.presentation.screen.HabitCreationScreen
 import me.sosedik.habitrack.presentation.screen.HabitListScreen
+import me.sosedik.habitrack.presentation.screen.PRE_PICKED_ICONS
 import me.sosedik.habitrack.presentation.screen.SettingsScreen
 import me.sosedik.habitrack.presentation.theme.HabiTrackTheme
 import me.sosedik.habitrack.presentation.theme.IconCache
@@ -35,7 +36,13 @@ import me.sosedik.habitrack.util.localDate
 
 private val iconCache = IconCache(
     mappings = mapOf(
-        "star" to "*"
+        "default" to "*",
+        PRE_PICKED_ICONS[0] to "^",
+        PRE_PICKED_ICONS[1] to "0",
+        PRE_PICKED_ICONS[2] to "@",
+        PRE_PICKED_ICONS[3] to "_",
+        PRE_PICKED_ICONS[4] to "$",
+        PRE_PICKED_ICONS[5] to "3"
     ),
     fontFamily = null
 )
@@ -44,7 +51,7 @@ private val categories = (1..10).map {
     HabitCategory(
         id = it.toLong(),
         name = "Cat $it",
-        icon = iconCache.defaultIconKey
+        icon = PRE_PICKED_ICONS[it % PRE_PICKED_ICONS.size]
     )
 }
 private val habits = (1..10).map {
@@ -53,8 +60,8 @@ private val habits = (1..10).map {
         name = "Habit $it",
         description = "This is habit $it",
         dailyLimit = 1,
-        icon = iconCache.defaultIconKey,
-        color = PRE_PICKED_COLORS[0],
+        icon = PRE_PICKED_ICONS[it % PRE_PICKED_ICONS.size],
+        color = PRE_PICKED_COLORS[it % PRE_PICKED_COLORS.size],
         order = it
     )
 }
