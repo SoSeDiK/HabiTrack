@@ -335,8 +335,11 @@ fun HabitCreationScreen(
                 iconCache = iconCache,
                 state = state,
                 onAction = { action ->
-                    if (action == HabitCreationAction.EditCategories)
+                    if (action == HabitCreationAction.EditCategories) {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
                         showCategoriesPicker = true
+                    }
                     onAction(action)
                 }
             )
@@ -409,6 +412,8 @@ fun HabitCreationScreen(
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 onClick = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
                     showIconPicker = true
                 }
             ) {
@@ -441,7 +446,11 @@ fun HabitCreationScreen(
                 }
                 item {
                     ColorPickerButton(
-                        onClick = { showColorPicker = true }
+                        onClick = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                            showColorPicker = true
+                        }
                     )
                 }
             }
