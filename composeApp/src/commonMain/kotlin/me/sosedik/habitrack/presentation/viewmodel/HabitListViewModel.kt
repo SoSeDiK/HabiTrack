@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.map
 import com.kizitonwose.calendar.core.YearMonth
 import com.kizitonwose.calendar.core.minusMonths
@@ -37,10 +38,10 @@ import me.sosedik.habitrack.util.getStartOfDayInUTC
 import me.sosedik.habitrack.util.localDate
 
 class HabitListViewModel(
-    val settingsRepository: SettingsRepository,
-    val habitCategoryRepository: HabitCategoryRepository,
-    val habitRepository: HabitRepository,
-    val habitEntryRepository: HabitEntryRepository
+    private val settingsRepository: SettingsRepository,
+    private val habitCategoryRepository: HabitCategoryRepository,
+    private val habitRepository: HabitRepository,
+    private val habitEntryRepository: HabitEntryRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HabitListState())
@@ -184,6 +185,28 @@ class HabitListViewModel(
         }
     }
 
+    suspend fun updateHabitOrder(action: HabitListAction.OnOrderUpdate) {
+        val fromIndex = action.fromIndex
+        val toIndex = action.toIndex
+        if (fromIndex == toIndex) return
+
+        val currentHabits = action.habits.itemSnapshotList.items.toMutableList()
+        val habitToMove = currentHabits[fromIndex]
+        val newOrder = currentHabits[toIndex].order
+
+        val step = if (toIndex < fromIndex) 1 else -1
+        val range = if (toIndex < fromIndex) toIndex ..< fromIndex else fromIndex + 1..toIndex
+
+        for (i in range) {
+            currentHabits[i] = currentHabits[i].copy(order = currentHabits[i].order + step)
+        }
+
+        currentHabits.removeAt(fromIndex)
+        currentHabits.add(toIndex, habitToMove.copy(order = newOrder))
+
+        habitRepository.update(currentHabits)
+    }
+
     private fun updateHabitProgress(
         habit: Habit,
         date: LocalDate,
@@ -304,6 +327,7 @@ sealed interface HabitListAction {
     data object OnFocusCancel : HabitListAction
     data object OnCalendarActionClick : HabitListAction
     data class OnCalendarMonthLoad(val yearMonth: YearMonth) : HabitListAction
+    data class OnOrderUpdate(val habits: LazyPagingItems<Habit>, val fromIndex: Int, val toIndex: Int) : HabitListAction
 
 }
 

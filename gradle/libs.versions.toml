@@ -30,6 +30,7 @@ sqlite = "2.5.0-rc02"
 # Libs
 calendar = "2.6.2"
 colorpicker = "1.1.2"
+reorderable = "2.4.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -66,6 +67,7 @@ sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sql
 
 calendar = { module = "com.kizitonwose.calendar:compose-multiplatform", version.ref = "calendar" }
 colorpicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
 # TODO remove once compose 1.8 is released
 backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-multiplatform" }

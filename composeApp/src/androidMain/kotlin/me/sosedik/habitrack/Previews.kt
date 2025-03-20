@@ -73,6 +73,8 @@ private val habits = (1..10).map {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HomePreview() {
+    var list by remember { mutableStateOf(habits) }
+
     HabiTrackTheme {
         Surface {
             HabitListScreen(
@@ -80,7 +82,12 @@ fun HomePreview() {
                 state = HabitListState(
                     categories = categories
                 ),
-                habits = flowOf(PagingData.from(habits)).collectAsLazyPagingItems(),
+                habits = flowOf(PagingData.from(list)).collectAsLazyPagingItems(),
+                onOrderUpdate = {
+                    list = list.toMutableList().apply {
+                        add(it.toIndex, removeAt(it.fromIndex))
+                    }
+                },
                 onAction = {}
             )
         }

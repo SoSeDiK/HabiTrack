@@ -22,6 +22,10 @@ class DefaultHabitRepository(
         return if (newId == -1L) habit else habit.copy(id = newId)
     }
 
+    override suspend fun update(habits: List<Habit>) {
+        habitsDao.updateHabits(habits.map { it.toEntity() })
+    }
+
     override suspend fun getMaxOrder(): Int {
         return habitsDao.getMaxOrder() ?: -1
     }

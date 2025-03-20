@@ -1,5 +1,6 @@
 package me.sosedik.habitrack.presentation.screen
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -101,6 +102,8 @@ import me.sosedik.habitrack.util.localDate
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun HabitListScreenRoot(
@@ -117,6 +120,9 @@ fun HabitListScreenRoot(
         iconCache = iconCache,
         state = state,
         habits = habits,
+        onOrderUpdate = {
+            viewModel.updateHabitOrder(it)
+        },
         onAction = { action ->
             when (action) {
                 HabitListAction.OnOpenSettings -> onSettings()
@@ -135,6 +141,7 @@ fun HabitListScreen(
     iconCache: IconCache,
     state: HabitListState,
     habits: LazyPagingItems<Habit>,
+    onOrderUpdate: suspend (HabitListAction.OnOrderUpdate) -> Unit,
     onAction: (HabitListAction) -> Unit
 ) {
     val blurValue by animateFloatAsState(targetValue = if (state.focusedHabit != null) 20F else 0F)
@@ -172,6 +179,7 @@ fun HabitListScreen(
                 iconCache = iconCache,
                 state = state,
                 habits = habits,
+                onOrderUpdate = onOrderUpdate,
                 onAction = onAction
             )
         }
@@ -345,9 +353,19 @@ private fun HabitsList(
     iconCache: IconCache,
     state: HabitListState,
     habits: LazyPagingItems<Habit>,
+    onOrderUpdate: suspend (HabitListAction.OnOrderUpdate) -> Unit,
     onAction: (HabitListAction) -> Unit
 ) {
+    val listState = rememberLazyListState()
+    val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
+        onOrderUpdate(HabitListAction.OnOrderUpdate(habits, from.index, to.index))
+//        println("T: ${from.index} -> ${to.index}")
+    }
+
     LazyColumn(
+        modifier = Modifier
+            .fillMaxSize(),
+        state = listState,
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         items(
@@ -364,13 +382,21 @@ private fun HabitsList(
                     onAction = onAction
                 )
             } else {
-                ShortListHabit( // TODO more views
-                    iconCache = iconCache,
-                    habit = habit,
-                    completions = state.habitProgressions[habit.id] ?: emptyMap(),
-                    allowActions = !state.updatingData,
-                    onAction = onAction
-                )
+                ReorderableItem(reorderableLazyListState, key = habit.id) { isDragging ->
+                    val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
+
+                    Surface(shadowElevation = elevation) {
+                        ShortListHabit( // TODO more views
+                            modifier = Modifier
+                                .longPressDraggableHandle(),
+                            iconCache = iconCache,
+                            habit = habit,
+                            completions = state.habitProgressions[habit.id] ?: emptyMap(),
+                            allowActions = !state.updatingData,
+                            onAction = onAction
+                        )
+                    }
+                }
             }
         }
     }
@@ -381,7 +407,7 @@ fun FocusedHabit(
     iconCache: IconCache,
     habit: Habit,
     completions: Map<LocalDate, HabitEntry>,
-    allowActions: Boolean, // TODO separate allow actions from button enabled states (it flickers)
+    allowActions: Boolean,
     onAction: (HabitListAction) -> Unit
 ) {
     var desaturatedColor by remember { mutableStateOf(getDesaturatedColor(habit.color)) }

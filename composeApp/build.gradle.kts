@@ -84,6 +84,7 @@ kotlin {
 
             implementation(libs.calendar)
             implementation(libs.colorpicker)
+            implementation(libs.reorderable)
         }
     }
 }

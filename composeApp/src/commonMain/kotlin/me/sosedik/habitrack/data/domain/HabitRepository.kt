@@ -7,6 +7,8 @@ interface HabitRepository {
 
     suspend fun upsert(habit: Habit): Habit
 
+    suspend fun update(habits: List<Habit>)
+
     suspend fun getMaxOrder(): Int
 
     fun getHabitUpdates(habit: Habit): Flow<Habit?>

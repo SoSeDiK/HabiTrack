@@ -44,6 +44,7 @@ private val PLACEHOLDER_COLOR = Color.Gray
 
 @Composable
 fun ShortListHabit(
+    modifier: Modifier = Modifier,
     iconCache: IconCache,
     habit: Habit?,
     completions: Map<LocalDate, HabitEntry>,
@@ -57,7 +58,7 @@ fun ShortListHabit(
     }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clickable(
                 enabled = allowActions,
                 onClick = {
@@ -101,7 +102,6 @@ fun ShortListHabit(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             lastFiveDays.forEachIndexed { index, day ->
-                // TODO click to increase day counter
                 val date: LocalDate = getPriorDayProgress(4 - index)
                 val progress: HabitEntry? = completions[date]
                 val color: Color = if (habit == null) PLACEHOLDER_COLOR else calculateColor(habit.color, desaturatedColor, progress)

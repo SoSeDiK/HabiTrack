@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +16,9 @@ interface HabitsDao {
 
     @Upsert
     suspend fun upsert(habit: HabitEntity): Long
+
+    @Update
+    suspend fun updateHabits(habits: List<HabitEntity>)
 
     @Query("DELETE FROM habits WHERE id = :id")
     suspend fun delete(id: Long)
