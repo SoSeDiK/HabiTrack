@@ -6,6 +6,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -105,6 +109,8 @@ fun HabitCreationPreview() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun CategoriesPickerPreview() {
+    var pickedCategories by remember { mutableStateOf(categories.takeLast(3)) }
+
     HabiTrackTheme {
         Surface {
             CategoriesPicker(
@@ -113,6 +119,13 @@ fun CategoriesPickerPreview() {
                     allCategories = categories,
                     pickedCategories = categories.takeLast(3)
                 ),
+                pickedCategories = pickedCategories,
+                onCategoryClick = { category ->
+                    val categories = pickedCategories.toMutableList()
+                    if (!categories.remove(category))
+                        categories.add(category)
+                    pickedCategories = categories.toList()
+                },
                 onAction = {}
             )
         }

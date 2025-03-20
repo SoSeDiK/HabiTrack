@@ -57,7 +57,6 @@ import me.sosedik.habitrack.util.localDate
 import me.sosedik.habitrack.util.locale
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalCalendarApi::class)
 @Composable
 fun HabitCalendarProgressions(
     habit: Habit,

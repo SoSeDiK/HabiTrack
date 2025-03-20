@@ -454,6 +454,13 @@ fun HabitCreationScreen(
         var editingCategory by remember { mutableStateOf<HabitCategory?>(null) }
         val categoryNameState = rememberTextFieldState()
         var pickedIcon by remember { mutableStateOf<String?>(null) }
+        var pickedCategories by remember { mutableStateOf(state.pickedCategories) }
+
+        LaunchedEffect(state.allCategories) {
+            val categories = pickedCategories.toMutableList()
+            categories.removeAll { !state.allCategories.contains(it) }
+            pickedCategories = categories.toList()
+        }
 
         ModalBottomSheet(
             sheetState = bottomSheetState,
@@ -476,6 +483,13 @@ fun HabitCreationScreen(
                         CategoriesPicker(
                             iconCache = iconCache,
                             state = state,
+                            pickedCategories = pickedCategories,
+                            onCategoryClick = { category ->
+                                val categories = pickedCategories.toMutableList()
+                                if (!categories.remove(category))
+                                    categories.add(category)
+                                pickedCategories = categories.toList()
+                            },
                             onAction = { action ->
                                 when (action) {
                                     is HabitCreationAction.SaveCategories -> showCategoriesPicker = false
@@ -707,10 +721,10 @@ private fun CategoriesOverview(
 fun CategoriesPicker(
     iconCache: IconCache,
     state: HabitCreationState,
+    pickedCategories: List<HabitCategory>,
+    onCategoryClick: (HabitCategory) -> Unit,
     onAction: (HabitCreationAction) -> Unit
 ) {
-    var pickedCategories by remember { mutableStateOf(state.pickedCategories) }
-
     Column(
         modifier = Modifier
             .padding(20.dp),
@@ -742,10 +756,7 @@ fun CategoriesPicker(
                         modifier = Modifier
                             .combinedClickable(
                                 onClick = {
-                                    val categories = pickedCategories.toMutableList()
-                                    if (!categories.remove(category))
-                                        categories.add(category)
-                                    pickedCategories = categories.toList()
+                                    onCategoryClick(category)
                                 },
                                 onLongClick = {
                                     showMenu = true
@@ -774,11 +785,6 @@ fun CategoriesPicker(
                         DropdownMenuItem(
                             onClick = {
                                 showMenu = false
-                                if (pickedCategories.contains(category)) {
-                                    val categories = pickedCategories.toMutableList()
-                                    categories.remove(category)
-                                    pickedCategories = categories.toList()
-                                }
                                 // TODO confirmation dialogue
                                 onAction.invoke(HabitCreationAction.DeleteCategory(category))
                             },
