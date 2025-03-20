@@ -507,14 +507,18 @@ fun FocusedHabit(
                         contentDescription = stringResource(Res.string.habit_details_desc_streak)
                     )
                     Text(
-                        text = (stringResource(
-                            if (dayCompletions == 0)
-                                Res.string.habit_details_progress_not_started
-                            else if (dayCompletions < total)
-                                Res.string.habit_details_progress_in_progress
-                            else
-                                Res.string.habit_details_progress_completed
-                        )) + "  $dayCompletions / $total",
+                        text =
+                            (stringResource(
+                                if (dayCompletions == 0)
+                                    Res.string.habit_details_progress_not_started
+                                else if (dayCompletions < total)
+                                    Res.string.habit_details_progress_in_progress
+                                else
+                                    Res.string.habit_details_progress_completed
+                            )) + (
+                                if (habit.hasDailyLimit()) "  $dayCompletions / $total"
+                                else (if (dayCompletions == 0) "" else "  ×$dayCompletions")
+                            ),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -598,7 +602,7 @@ private fun calculateStreak(
     var streak = 0
     var streakDay = startDate
     if (completions[streakDay] == null) streakDay = streakDay.minus(1, DateTimeUnit.DAY)
-    while (completions[streakDay] != null && completions[streakDay]!!.count >= completions[streakDay]!!.limit) {
+    while (completions[streakDay] != null && completions[streakDay]!!.isCompleted()) {
         streak++
         streakDay = streakDay.minus(1, DateTimeUnit.DAY)
     }

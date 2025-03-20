@@ -203,7 +203,10 @@ class HabitListViewModel(
             count++
         else
             count--
-        if (count > habit.dailyLimit || count < 0) count = 0
+
+        count =
+            if (habit.hasDailyLimit() && count > habit.dailyLimit) 0
+            else count.coerceIn(0, DAILY_LIMIT_MAX)
 
         entry = entry?.copy(
             count = count
@@ -219,8 +222,8 @@ class HabitListViewModel(
         viewModelScope.launch {
             if (entry != null) {
                 entry = habitEntryRepository.addEntry(entry!!)
-                if (entry.id != 0L)
-                    completions.put(date, entry)
+                if (entry!!.id != 0L)
+                    completions[date] = entry!!
                 allCompletions[habit.id] = completions.toMap()
             }
 

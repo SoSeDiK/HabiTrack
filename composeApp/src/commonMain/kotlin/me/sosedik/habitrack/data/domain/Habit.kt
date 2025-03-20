@@ -12,4 +12,10 @@ data class Habit(
     val order: Int
     // TODO streak goal (none, daily, weekly, monthly)
     // TODO remainder
-)
+) {
+
+    fun hasDailyLimit(): Boolean {
+        return dailyLimit > 0
+    }
+
+}

@@ -357,7 +357,7 @@ fun HabitCreationScreen(
                     ) {
                         Text(
                             text =
-                                if (state.dailyLimit > 0)
+                                if (state.hasDailyLimit())
                                     state.dailyLimit.toString()
                                 else
                                     "∞",

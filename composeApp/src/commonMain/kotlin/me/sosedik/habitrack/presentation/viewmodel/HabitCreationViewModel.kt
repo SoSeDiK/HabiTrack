@@ -235,6 +235,10 @@ data class HabitCreationState(
     val order: Int? = null
 ) {
 
+    fun hasDailyLimit(): Boolean {
+        return dailyLimit > 0
+    }
+
     fun isEditing(): Boolean {
         return this.habitId != null
     }

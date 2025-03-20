@@ -8,4 +8,14 @@ data class HabitEntry(
     val date: Instant,
     val count: Int,
     val limit: Int
-)
+) {
+
+    fun hasDailyLimit(): Boolean {
+        return limit > 0
+    }
+
+    fun isCompleted(): Boolean {
+        return if (hasDailyLimit()) count >= limit else count > 0
+    }
+
+}
