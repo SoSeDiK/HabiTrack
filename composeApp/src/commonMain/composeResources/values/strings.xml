@@ -33,6 +33,11 @@
     <string name="habit_details_progress_not_started">Not started</string>
     <string name="habit_details_progress_in_progress">In progress</string>
     <string name="habit_details_progress_completed">Completed</string>
+    <string name="habit_details_action_archive_title">Confirm action</string>
+    <string name="habit_details_action_archive_description">Are you sure want to delete or archive this habit?</string>
+    <string name="habit_details_action_archive_cancel">Cancel</string>
+    <string name="habit_details_action_archive_delete">Delete</string>
+    <string name="habit_details_action_archive_confirm">Archive</string>
 
     <!-- Habit creation/editing -->
     <string name="habit_creation_header">New habit</string>
@@ -88,7 +93,17 @@
     <string name="settings_overview_header">Settings</string>
     <string name="settings_overview_category_general">General</string>
     <string name="settings_overview_category_general_desc">Navigate to general settings</string>
+    <string name="settings_overview_category_archive">Archived categories</string>
+    <string name="settings_overview_category_archive_desc">Navigate to archived categories</string>
     <string name="settings_cat_general_week_on_sunday">Week starts on Sunday</string>
+    <string name="settings_archive_action_delete">Delete permanently</string>
+    <string name="settings_archive_action_delete_title">Attention</string>
+    <string name="settings_archive_action_delete_description">Do you really want to delete this habit permanently?</string>
+    <string name="settings_archive_action_delete_cancel">Cancel</string>
+    <string name="settings_archive_action_restore">Restore</string>
+    <string name="settings_archive_action_restore_title">Confirm action</string>
+    <string name="settings_archive_action_restore_description">Do you want to restore this habit?</string>
+    <string name="settings_archive_action_restore_cancel">Cancel</string>
 
     <!-- Errors -->
     <string name="error_can_not_be_empty">This field cannot be empty</string>

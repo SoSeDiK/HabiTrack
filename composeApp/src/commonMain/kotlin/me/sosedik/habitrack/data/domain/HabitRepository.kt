@@ -13,11 +13,15 @@ interface HabitRepository {
 
     fun getHabitUpdates(habit: Habit): Flow<Habit?>
 
-    fun getAllHabits(): Flow<PagingData<Habit>>
+    fun getAllActiveHabits(): Flow<PagingData<Habit>>
 
-    fun getHabitsByCategory(category: HabitCategory): Flow<PagingData<Habit>>
+    fun getAllArchivedHabits(): Flow<PagingData<Habit>>
+
+    fun getActiveHabitsByCategory(category: HabitCategory): Flow<PagingData<Habit>>
 
     suspend fun deleteHabit(habit: Habit)
+
+    suspend fun updateArchivedState(habit: Habit, archived: Boolean)
 
     suspend fun updateHabitCategories(habit: Habit, newCategoryIds: List<HabitCategory>)
 

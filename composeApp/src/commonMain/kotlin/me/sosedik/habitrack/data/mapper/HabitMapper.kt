@@ -11,7 +11,8 @@ fun HabitEntity.toDomain(): Habit {
         dailyLimit = this.dailyLimit,
         icon = this.icon,
         color = this.color,
-        order = this.order
+        order = this.order,
+        archived = this.archived
     )
 }
 
@@ -23,6 +24,7 @@ fun Habit.toEntity(): HabitEntity {
         dailyLimit = this.dailyLimit,
         icon = this.icon,
         color = this.color,
-        order = this.order
+        order = this.order,
+        archived = this.archived
     )
 }

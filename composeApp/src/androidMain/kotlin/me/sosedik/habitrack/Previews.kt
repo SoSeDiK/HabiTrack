@@ -26,6 +26,7 @@ import me.sosedik.habitrack.presentation.screen.CategoriesPicker
 import me.sosedik.habitrack.presentation.screen.ColorPicker
 import me.sosedik.habitrack.presentation.screen.FocusedHabit
 import me.sosedik.habitrack.presentation.screen.GeneralSettingsScreen
+import me.sosedik.habitrack.presentation.screen.HabitArchivalDialogue
 import me.sosedik.habitrack.presentation.screen.HabitCreationScreen
 import me.sosedik.habitrack.presentation.screen.HabitListScreen
 import me.sosedik.habitrack.presentation.screen.PRE_PICKED_ICONS
@@ -66,7 +67,8 @@ private val habits = (1..10).map {
         dailyLimit = 1,
         icon = PRE_PICKED_ICONS[it % PRE_PICKED_ICONS.size],
         color = PRE_PICKED_COLORS[it % PRE_PICKED_COLORS.size],
-        order = it
+        order = it,
+        archived = false
     )
 }
 
@@ -222,6 +224,20 @@ fun GeneralSettingsPreview() {
                     loadingData = false,
                     weekOnSunday = false
                 ),
+                onAction = {}
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HabitArchivalDialoguePreview() {
+    HabiTrackTheme {
+        Surface {
+            HabitArchivalDialogue(
+                habit = habits[0],
+                onDismissRequest = {},
                 onAction = {}
             )
         }

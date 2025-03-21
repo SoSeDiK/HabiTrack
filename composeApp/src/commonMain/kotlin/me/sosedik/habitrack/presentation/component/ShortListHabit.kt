@@ -40,7 +40,7 @@ import me.sosedik.habitrack.util.getPriorDayProgress
 import me.sosedik.habitrack.util.localDate
 import me.sosedik.habitrack.util.locale
 
-private val PLACEHOLDER_COLOR = Color.Gray
+val PLACEHOLDER_COLOR = Color.Gray
 
 @Composable
 fun ShortListHabit(

@@ -35,20 +35,30 @@ class DefaultHabitRepository(
             .map { it?.toDomain() }
     }
 
-    override fun getAllHabits(): Flow<PagingData<Habit>> {
+    override fun getAllActiveHabits(): Flow<PagingData<Habit>> {
         return Pager(
             config = PagingConfig(pageSize = 30),
-            pagingSourceFactory = { habitsDao.getAllHabits() }
+            pagingSourceFactory = { habitsDao.getAllActiveHabits() }
         ).flow
             .map { pagingData ->
                 pagingData.map { it.toDomain() }
             }
     }
 
-    override fun getHabitsByCategory(category: HabitCategory): Flow<PagingData<Habit>>{
+    override fun getAllArchivedHabits(): Flow<PagingData<Habit>> {
         return Pager(
             config = PagingConfig(pageSize = 30),
-            pagingSourceFactory = { habitsDao.getHabitsByCategory(category.id) }
+            pagingSourceFactory = { habitsDao.getAllArchivedHabits() }
+        ).flow
+            .map { pagingData ->
+                pagingData.map { it.toDomain() }
+            }
+    }
+
+    override fun getActiveHabitsByCategory(category: HabitCategory): Flow<PagingData<Habit>>{
+        return Pager(
+            config = PagingConfig(pageSize = 30),
+            pagingSourceFactory = { habitsDao.getActiveHabitsByCategory(category.id) }
         ).flow
             .map { pagingData ->
                 pagingData.map { it.toDomain() }
@@ -57,6 +67,10 @@ class DefaultHabitRepository(
 
     override suspend fun deleteHabit(habit: Habit) {
         habitsDao.delete(habit.id)
+    }
+
+    override suspend fun updateArchivedState(habit: Habit, archived: Boolean) {
+        habitsDao.updateArchivedState(habit.id, archived)
     }
 
     override suspend fun updateHabitCategories(

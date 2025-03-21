@@ -26,16 +26,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 import habitrack.composeapp.generated.resources.Res
+import habitrack.composeapp.generated.resources.settings_overview_category_archive
+import habitrack.composeapp.generated.resources.settings_overview_category_archive_desc
 import habitrack.composeapp.generated.resources.settings_overview_category_general
 import habitrack.composeapp.generated.resources.settings_overview_category_general_desc
 import habitrack.composeapp.generated.resources.settings_overview_header
+import habitrack.composeapp.generated.resources.ui_archive_24px
 import habitrack.composeapp.generated.resources.ui_settings_24px
 import me.sosedik.habitrack.app.Route
 import me.sosedik.habitrack.presentation.viewmodel.SettingsAction
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+
+private val generalCategoryColor = Color(0xFFDA8DC7)
+private val archiveCategoryColor = Color(0xFF90CAF9)
 
 @Composable
 fun SettingsScreenRoot(
@@ -92,18 +99,32 @@ fun SettingsScreen(
         ) {
             SettingsCategory(
                 name = stringResource(Res.string.settings_overview_category_general),
+                description = stringResource(Res.string.settings_overview_category_general_desc),
+                color = generalCategoryColor,
+                icon = painterResource(Res.drawable.ui_settings_24px),
                 onClick = {
                     onAction.invoke(SettingsAction.PickCategory(Route.Settings.General))
+                }
+            )
+            SettingsCategory(
+                name = stringResource(Res.string.settings_overview_category_archive),
+                description = stringResource(Res.string.settings_overview_category_archive_desc),
+                color = archiveCategoryColor,
+                icon = painterResource(Res.drawable.ui_archive_24px),
+                onClick = {
+                    onAction.invoke(SettingsAction.PickCategory(Route.Settings.Archive))
                 }
             )
         }
     }
 }
 
-private val generalCategoryColor = Color(0xFFDA8DC7)
 @Composable
 private fun SettingsCategory(
     name: String,
+    description: String,
+    color: Color,
+    icon: Painter,
     onClick: () -> Unit
 ) {
     Surface(
@@ -117,9 +138,9 @@ private fun SettingsCategory(
         ) {
             Icon(
                 modifier = Modifier
-                    .background(generalCategoryColor, RoundedCornerShape(8.dp))
+                    .background(color, RoundedCornerShape(8.dp))
                     .padding(5.dp),
-                painter = painterResource(Res.drawable.ui_settings_24px),
+                painter = icon,
                 contentDescription = null
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -132,7 +153,7 @@ private fun SettingsCategory(
             Spacer(modifier = Modifier.weight(1F))
             Icon(
                 Icons.AutoMirrored.Default.KeyboardArrowRight,
-                contentDescription = stringResource(Res.string.settings_overview_category_general_desc),
+                contentDescription = description,
                 tint = MaterialTheme.colorScheme.primary
             )
         }

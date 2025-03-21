@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,11 +59,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import habitrack.composeapp.generated.resources.Res
+import habitrack.composeapp.generated.resources.habit_details_action_archive_cancel
+import habitrack.composeapp.generated.resources.habit_details_action_archive_confirm
+import habitrack.composeapp.generated.resources.habit_details_action_archive_delete
+import habitrack.composeapp.generated.resources.habit_details_action_archive_description
+import habitrack.composeapp.generated.resources.habit_details_action_archive_title
 import habitrack.composeapp.generated.resources.habit_details_action_desc_archive
 import habitrack.composeapp.generated.resources.habit_details_action_desc_calendar
 import habitrack.composeapp.generated.resources.habit_details_action_desc_edit
@@ -72,6 +81,7 @@ import habitrack.composeapp.generated.resources.habit_details_progress_not_start
 import habitrack.composeapp.generated.resources.habits_header_first_half
 import habitrack.composeapp.generated.resources.habits_header_second_half
 import habitrack.composeapp.generated.resources.ui_add_circle_24px
+import habitrack.composeapp.generated.resources.ui_archive_24px
 import habitrack.composeapp.generated.resources.ui_bar_chart_24px
 import habitrack.composeapp.generated.resources.ui_calendar_month_24px
 import habitrack.composeapp.generated.resources.ui_circle_24px
@@ -359,7 +369,6 @@ private fun HabitsList(
     val listState = rememberLazyListState()
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
         onOrderUpdate(HabitListAction.OnOrderUpdate(habits, from.index, to.index))
-//        println("T: ${from.index} -> ${to.index}")
     }
 
     LazyColumn(
@@ -410,6 +419,8 @@ fun FocusedHabit(
     allowActions: Boolean,
     onAction: (HabitListAction) -> Unit
 ) {
+    var showDeletionConfirmation by remember { mutableStateOf(false) }
+
     var desaturatedColor by remember { mutableStateOf(getDesaturatedColor(habit.color)) }
 
     var lastCalculatedDate by remember { mutableStateOf(localDate()) }
@@ -606,7 +617,7 @@ fun FocusedHabit(
                 icon = rememberVectorPainter(Icons.Default.Delete),
                 contentDescription = stringResource(Res.string.habit_details_action_desc_archive),
                 onClick = {
-                    if (allowActions) onAction.invoke(HabitListAction.OnHabitDelete(habit)) // TODO confirmation
+                    if (allowActions) showDeletionConfirmation = true
                 }
             )
             FocusedHabitAction(
@@ -618,6 +629,14 @@ fun FocusedHabit(
                 }
             )
         }
+    }
+
+    if (showDeletionConfirmation) {
+        HabitArchivalDialogue(
+            habit = habit,
+            onDismissRequest = { showDeletionConfirmation = false },
+            onAction = onAction
+        )
     }
 }
 
@@ -633,6 +652,70 @@ private fun calculateStreak(
         streakDay = streakDay.minus(1, DateTimeUnit.DAY)
     }
     return streak
+}
+
+@Composable
+fun HabitArchivalDialogue(
+    habit: Habit,
+    onDismissRequest: () -> Unit,
+    onAction: (HabitListAction) -> Unit
+) {
+    AlertDialog(
+        modifier = Modifier
+            .padding(16.dp),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(text = stringResource(Res.string.habit_details_action_archive_title))
+        },
+        text = {
+            Text(text = stringResource(Res.string.habit_details_action_archive_description))
+        },
+        confirmButton = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = {
+                        onDismissRequest()
+                        onAction.invoke(HabitListAction.OnHabitDelete(habit))
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = stringResource(Res.string.habit_details_action_archive_delete))
+                }
+                TextButton(
+                    onClick = {
+                        onDismissRequest()
+                        onAction.invoke(HabitListAction.OnHabitArchival(habit))
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ui_archive_24px),
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = stringResource(Res.string.habit_details_action_archive_confirm))
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                }
+            ) {
+                Text(text = stringResource(Res.string.habit_details_action_archive_cancel))
+            }
+        }
+    )
 }
 
 @Composable

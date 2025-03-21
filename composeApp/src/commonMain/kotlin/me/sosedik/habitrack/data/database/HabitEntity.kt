@@ -14,5 +14,6 @@ data class HabitEntity(
     val dailyLimit: Int,
     val icon: String,
     val color: Color,
-    val order: Int
+    val order: Int,
+    val archived: Boolean
 )

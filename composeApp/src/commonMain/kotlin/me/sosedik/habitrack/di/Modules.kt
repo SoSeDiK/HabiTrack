@@ -23,6 +23,7 @@ import me.sosedik.habitrack.data.repository.DefaultSettingsRepository
 import me.sosedik.habitrack.presentation.theme.IconCache
 import me.sosedik.habitrack.presentation.theme.loadIcons
 import me.sosedik.habitrack.presentation.viewmodel.AppViewModel
+import me.sosedik.habitrack.presentation.viewmodel.ArchivedHabitsViewModel
 import me.sosedik.habitrack.presentation.viewmodel.GeneralSettingsViewModel
 import me.sosedik.habitrack.presentation.viewmodel.HabitCreationViewModel
 import me.sosedik.habitrack.presentation.viewmodel.HabitListViewModel
@@ -78,4 +79,5 @@ val sharedModule = module {
     viewModelOf(::HabitCreationViewModel)
     viewModelOf(::HabitListViewModel)
     viewModelOf(::GeneralSettingsViewModel)
+    viewModelOf(::ArchivedHabitsViewModel)
 }

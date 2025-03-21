@@ -29,11 +29,22 @@ interface HabitsDao {
     @Query("SELECT * FROM habits WHERE id = :habitId")
     fun getHabitById(habitId: Long): Flow<HabitEntity?>
 
-    @Query("SELECT * FROM habits ORDER BY `order` ASC")
-    fun getAllHabits(): PagingSource<Int, HabitEntity>
+    @Query("SELECT * FROM habits WHERE archived = 0 ORDER BY `order` ASC")
+    fun getAllActiveHabits(): PagingSource<Int, HabitEntity>
 
-    @Query("SELECT * FROM habits WHERE id IN (SELECT habitId FROM habit_categories_cross WHERE categoryId = :categoryId) ORDER BY `order` ASC")
-    fun getHabitsByCategory(categoryId: Long): PagingSource<Int, HabitEntity>
+    @Query("SELECT * FROM habits WHERE archived = 1 ORDER BY `order` ASC")
+    fun getAllArchivedHabits(): PagingSource<Int, HabitEntity>
+
+    @Query("""
+        SELECT * FROM habits 
+        WHERE id IN (SELECT habitId FROM habit_categories_cross WHERE categoryId = :categoryId) 
+        AND archived = 0 
+        ORDER BY `order` ASC
+    """)
+    fun getActiveHabitsByCategory(categoryId: Long): PagingSource<Int, HabitEntity>
+
+    @Query("UPDATE habits SET archived = :archived WHERE id = :habitId")
+    suspend fun updateArchivedState(habitId: Long, archived: Boolean)
 
     @Transaction
     @Query("SELECT * FROM habit_categories WHERE id IN (SELECT categoryId FROM habit_categories_cross WHERE habitId = :id)")

@@ -61,8 +61,8 @@ class HabitListViewModel(
         .distinctUntilChanged()
         .flatMapLatest { filteredCategory ->
             val habitsFlow = filteredCategory?.let { category ->
-                habitRepository.getHabitsByCategory(category)
-            } ?: habitRepository.getAllHabits()
+                habitRepository.getActiveHabitsByCategory(category)
+            } ?: habitRepository.getAllActiveHabits()
 
             habitsFlow.map { pagingData -> // TODO remove this monstrosity
                 pagingData.map { habit ->
@@ -136,9 +136,19 @@ class HabitListViewModel(
                     listenForFocusedHabitUpdates(null)
                     habitRepository.deleteHabit(action.habit)
                     _state.update {
-                        it.copy(
-                            updatingData = false
-                        )
+                        it.copy(updatingData = false)
+                    }
+                }
+            }
+            is HabitListAction.OnHabitArchival -> {
+                _state.update {
+                    it.copy(updatingData = true)
+                }
+                viewModelScope.launch {
+                    listenForFocusedHabitUpdates(null)
+                    habitRepository.updateArchivedState(action.habit, true)
+                    _state.update {
+                        it.copy(updatingData = false)
                     }
                 }
             }
@@ -280,7 +290,7 @@ class HabitListViewModel(
 
         observeFocusedHabitJob = viewModelScope.launch {
             habitRepository.getHabitUpdates(habit).collect { updatedHabit ->
-                if (updatedHabit == null) {
+                if (updatedHabit == null || updatedHabit.archived) {
                     listenForFocusedHabitUpdates(null)
                 } else {
                     if (_state.value.focusedHabit?.id == updatedHabit.id) {
@@ -323,6 +333,7 @@ sealed interface HabitListAction {
     data class OnHabitClick(val habit: Habit) : HabitListAction
     data class OnHabitEdit(val habit: Habit) : HabitListAction
     data class OnHabitDelete(val habit: Habit) : HabitListAction
+    data class OnHabitArchival(val habit: Habit) : HabitListAction
     data class OnHabitProgressClick(val habit: Habit, val date: LocalDate, val increase: Boolean) : HabitListAction
     data object OnFocusCancel : HabitListAction
     data object OnCalendarActionClick : HabitListAction

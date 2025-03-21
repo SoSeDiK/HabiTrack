@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import me.sosedik.habitrack.presentation.screen.ArchivedHabitsScreenRoot
 import me.sosedik.habitrack.presentation.screen.GeneralSettingsScreenRoot
 import me.sosedik.habitrack.presentation.screen.HabitCreationScreenRoot
 import me.sosedik.habitrack.presentation.screen.HabitListScreenRoot
@@ -115,6 +116,30 @@ fun App(
                     }
                 ) {
                     GeneralSettingsScreenRoot(
+                        onDiscard = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                composable<Route.Settings.Archive>(
+                    enterTransition = {
+                        scaleIn(
+                            initialScale = 0.7F,
+                            animationSpec = tween(durationMillis = 200)
+                        )
+                    },
+                    popExitTransition = {
+                        scaleOut(
+                            targetScale = 0.9F,
+                            animationSpec = tween(durationMillis = 100)
+                        ) + fadeOut(
+                            targetAlpha = 0F,
+                            animationSpec = tween(durationMillis = 100)
+                        )
+                    }
+                ) {
+                    ArchivedHabitsScreenRoot(
+                        iconCache = iconCache,
                         onDiscard = {
                             navController.popBackStack()
                         }

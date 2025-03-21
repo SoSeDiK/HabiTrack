@@ -43,7 +43,8 @@ class HabitCreationViewModel(
                 icon = habit.icon,
                 color = habit.color,
                 customColor = if (PRE_PICKED_COLORS.contains(habit.color)) DEFAULT_CUSTOM_COLOR else habit.color,
-                order = habit.order
+                order = habit.order,
+                archived = habit.archived
             )
         } ?: HabitCreationState()
     )
@@ -134,7 +135,8 @@ class HabitCreationViewModel(
                         dailyLimit = current.dailyLimit,
                         icon = current.icon,
                         color = current.color,
-                        order = current.order ?: (habitRepository.getMaxOrder() + 1)
+                        order = current.order ?: (habitRepository.getMaxOrder() + 1),
+                        archived = current.archived
                     )
                     habit = habitRepository.upsert(habit)
                     habitRepository.updateHabitCategories(habit, current.pickedCategories)
@@ -232,7 +234,8 @@ data class HabitCreationState(
     val customIcon: String = "",
     val color: Color = PRE_PICKED_COLORS[0],
     val customColor: Color = DEFAULT_CUSTOM_COLOR,
-    val order: Int? = null
+    val order: Int? = null,
+    val archived: Boolean = false
 ) {
 
     fun hasDailyLimit(): Boolean {

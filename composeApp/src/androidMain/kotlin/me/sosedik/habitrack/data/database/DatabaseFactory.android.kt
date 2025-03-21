@@ -11,7 +11,7 @@ actual class DatabaseFactory(
         val appContext = context.applicationContext
         val dbFile = appContext.getDatabasePath(HabiTrackDatabase.DB_NAME)
 
-        return Room.databaseBuilder(
+        return Room.databaseBuilder<HabiTrackDatabase>(
             context = appContext,
             name = dbFile.absolutePath
         )
