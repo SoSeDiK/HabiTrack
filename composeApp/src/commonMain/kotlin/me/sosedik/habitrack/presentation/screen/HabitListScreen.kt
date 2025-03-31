@@ -43,6 +43,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -157,6 +158,10 @@ fun HabitListScreen(
     val blurValue by animateFloatAsState(targetValue = if (state.focusedHabit != null) 20F else 0F)
     var showCalendar by remember { mutableStateOf(false) }
 
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+
     BackHandler(enabled = state.focusedHabit != null) {
         onAction.invoke(HabitListAction.OnFocusCancel)
     }
@@ -240,6 +245,7 @@ fun HabitListScreen(
 
         if (showCalendar) {
             ModalBottomSheet(
+                sheetState = bottomSheetState,
                 onDismissRequest = {
                     showCalendar = false
                 }

@@ -153,8 +153,8 @@ class HabitListViewModel(
                 }
             }
             is HabitListAction.OnHabitProgressClick -> {
-                val date = action.date
-                val today = localDate()
+                val date: LocalDate = action.date
+                val today: LocalDate = localDate()
                 if (date.year > today.year) return
                 if (date.year == today.year) {
                     if (date.monthNumber > today.monthNumber) return

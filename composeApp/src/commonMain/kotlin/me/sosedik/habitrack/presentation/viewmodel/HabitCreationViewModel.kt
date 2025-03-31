@@ -54,7 +54,7 @@ class HabitCreationViewModel(
         }
         .stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000L),
+            SharingStarted.WhileSubscribed(5_000L),
             _state.value
         )
 

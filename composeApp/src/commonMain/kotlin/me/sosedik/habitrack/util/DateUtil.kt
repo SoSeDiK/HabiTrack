@@ -32,20 +32,21 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.atTime
 import kotlinx.datetime.isoDayNumber
 import kotlinx.datetime.minus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
-private val dbTimeZone = TimeZone.UTC
+private val dbTimeZone = TimeZone.UTC // Track against +0 timezone internally
 
 fun localTimeZone(): TimeZone {
     return TimeZone.currentSystemDefault()
 }
 
 fun localTimeUTC(timeZone: TimeZone = dbTimeZone): LocalDateTime {
-    return Clock.System.now().toLocalDateTime(timeZone) // Track against +0 timezone internally
+    return Clock.System.now().toLocalDateTime(timeZone)
 }
 
 fun localDate(): LocalDate {
@@ -63,7 +64,7 @@ fun getPriorDayProgress(dayOffset: Int): LocalDate {
 
 fun getPriorDaysRangeUTC(
     dayOffset: Int,
-    endDate: Instant = Clock.System.now()
+    endDate: Instant = localDate().atTime(23, 59, 59).toInstant(dbTimeZone)
 ): Pair<Instant, Instant> {
     val startDate = endDate.minus(dayOffset, DateTimeUnit.DAY, dbTimeZone)
     return Pair(startDate, endDate)
